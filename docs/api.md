@@ -1,127 +1,137 @@
-# Protobuf API v1
+# API
 
-四端只有一个应用协议：`proto/libbox/v1/control.proto`。不提供 JSON 控制入口、按操作拆分的 C 函数或公开的上游类型。
+控制协议为 protobuf v1，完整消息定义见 [control.proto](../proto/libbox/v1/control.proto)。`Config.config_json` 按固定的 sing-box v1.14.4 配置格式解释。
 
-## 会话
+## 会话与生命周期
 
-Go/gomobile 只导出：
+Go/gomobile 入口：
 
-~~~go
+```go
 type HostMessageHandler interface {
     HandleHostMessage(request []byte) ([]byte, error)
 }
 func NewMessageSession(handler HostMessageHandler) *MessageSession
 func (*MessageSession) HandleMessage(request []byte) []byte
 func (*MessageSession) Close() error
-~~~
+```
 
-原生构造函数仅分配会话，不创建核心。所有配置与操作通过 protobuf：
+使用 `NewMessageSession` 创建会话；gomobile 自动生成的无参构造函数不能初始化有效会话。NATIVE 网络模式可以传入空宿主处理器。
 
-1. 可先发送 get_info，读取版本和能力。
-2. create_engine：传 EngineOptions。每个会话拥有一个核心实例。
-3. check_config / start / reload / get_status 等。
-4. destroy_engine：停止核心并回收资源，可再次 create_engine。
-5. Close：释放语言绑定会话；幂等，也会清理遗漏销毁的核心。
+1. `get_info` 可在创建核心前读取版本和能力。
+2. `create_engine` 创建一个核心实例；同一会话同时只持有一个实例。
+3. `check_config` 校验配置，`start` 启动；`stop` 停止后可以再次启动。
+4. `destroy_engine` 销毁核心后可以再次创建；`Close` 永久关闭消息会话。
 
-不要使用 gomobile 自动生成的无参构造函数。Native Close 的错误用于资源清理失败；
-应用操作的错误始终由 Response.error 表达。HostMessageHandler 的 error 仅用于原生桥接故障，
-正常宿主失败应编码为 HostResponse.error。
+调用可并发执行，核心生命周期变更串行处理。关闭会拒绝新工作，并等待在途核心调用和宿主回调退出。`Close` 幂等，也会销毁尚未释放的核心。
 
 ## 请求与响应
 
-Request 包含 protocol_version=1、调用方生成的 id、timeout_ms、deadline_unix_ms 和 oneof method。
-Response 回显版本/id，oneof result 包含结果或 Error。调用方必须核对版本与 id。
+每个 `Request` 设置 `protocol_version=1`、调用方分配的 `id` 和一个 `method`。`Response` 回显版本与 id，结果由 `oneof result` 表示；调用方应核对版本、id 并处理 `Error.code`。
 
-timeout_ms 默认 30000，上限 60000；绝对截止时间若更早，则采用它。已过期请求不执行。
-排队中的启动/重载可取消，不会在调用方超时后悄悄开始。成功启动后的核心生命周期独立于
-原请求，原请求的截止时间不会停止已运行的核心。原生系统调用和同步宿主回调无法强制抢占，
-宿主需要遵守回调预算；资源清理一旦开始会完成。
-Stop 一旦接受并取消运行上下文，即使请求随后超时也会等到停止清理完成；
-Close 开始后拒绝新请求，并等待正在执行的核心调用与宿主回调退出。
-
-消息上限 4 MiB，解析前检查长度；无效消息也返回 protobuf Error。事件队列不是广播，
-多个消费者会分走事件。未知字段忽略，未知方法/主版本明确报错。
-
-## EngineOptions
-
-| 字段 | 规则 |
+| 项目 | 规则 |
 |---|---|
-| working_directory | 必填绝对路径，各运行实例使用独立目录 |
-| temp_directory | 默认工作目录下 tmp |
-| network_mode | NATIVE：Windows/Linux 核心 TUN 或纯代理；Apple TUN 必须 HOST，宿主管理网络并提供 raw FD |
-| event_buffer | 默认 256，范围 1–4096；移动扩展示例使用 64 |
-| under_network_extension / include_all_networks | 按真实 Apple 宿主设置 |
-| memory_profile | AUTO、DEFAULT、NETWORK_EXTENSION |
-| memory_limit_bytes / gc_percent | 可选 Go 运行时限制；见宿主文档 |
-| host_capabilities | HOST 模式按需声明 OPEN_TUN、PROTECT_SOCKET、CONNECTION_OWNER |
+| 控制请求、响应 | 最大 4 MiB，原始 protobuf 字节 |
+| `timeout_ms` | 默认 30000，最大 60000 |
+| `deadline_unix_ms` | 若提供更早的有效绝对截止时间，则采用该时间；过期请求不执行 |
+| 宿主响应 | 最大 64 KiB |
+| 未知字段 | 按 protobuf 兼容规则处理 |
+| 未知方法或主版本 | 返回明确错误 |
 
-声明能力时必须提供 HostMessageHandler。Windows TUN 采用 NATIVE；Unix FD 不能表示
-Wintun HANDLE。macOS/iOS 的 TUN 统一采用 HOST raw FD，每个 NetworkExtension 配置恰好一个 TUN。
-HOST 模式保留接口选择和保护控制，拒绝配置中的显式 bind_interface、
-inet4_bind_address、inet6_bind_address、default_interface、protect_path、netns。
-当前核心为正式版 v1.14.4，标准构建默认使用 system 栈；mixed/gvisor 需要 with_gvisor 标签。
-include_all_networks 必须使用 gvisor（显式指定或由空 stack 自动选择），缺少该标签时在配置阶段报错。
-该版本不支持 go 栈。
-iOS NetworkExtension 的出站使用系统 NECP 路由，不固定物理 APN；macOS 根据物理网络快照绑定出站。
-因此 iOS NE 不启用 auto_detect_interface，也不接受 default_network_strategy；两端的数据面仍共用 raw FD。
+排队中的启动、重载受请求预算约束；成功启动后的运行生命周期独立于原请求截止时间。原生系统调用和同步宿主回调无法强制抢占。停止意图一旦接受，即使请求随后超时，也会完成清理。
 
-## 方法
+应用错误由 `Response.error` 返回。`HostMessageHandler` 的语言级 error 用于桥接故障，宿主操作失败应返回 `HostResponse.error`；`Close` 的语言级 error 表示清理失败。
 
-| 方法 | 语义 |
+## 核心选项
+
+| `EngineOptions` 字段 | 规则 |
 |---|---|
-| create_engine / destroy_engine | 创建/销毁核心，不销毁消息会话 |
-| check_config | 构造并关闭校验实例，不打开监听器/TUN |
-| start / stop | 启停；Stop 可取消在途测速；重复启动报错 |
-| reload | 先校验；启动失败尝试恢复旧配置；中断现有连接 |
-| get_info / get_status | 版本/能力或运行状态、流量和 Go 内存数据 |
-| list_groups / list_outbounds | 自有 protobuf 结构；未测速时 delay_ms 不存在 |
-| select_outbound | 选择 selector 中的成员，失败不改变选择 |
-| url_test | 显式 HTTP(S) HEAD URL，返回延迟毫秒 |
-| set_mode | 使用配置允许的模式；通过受控重启切换，中断现有连接 |
-| set_paused | 设置设备暂停状态 |
-| close_connections | 关闭跟踪的活动连接 |
-| next_event | 等待一个事件；超时返回 Empty；destroy 唤醒等待者 |
-| update_network | 完整替换宿主物理网络快照，包括 DNS；-1 表示离线 |
-| memory_pressure | NONE、WARNING（GC）、CRITICAL（GC 并释放闲置页） |
+| `working_directory` | 必填绝对路径；各运行实例使用独立目录 |
+| `temp_directory` | 默认工作目录下的 `tmp` |
+| `network_mode` | `NATIVE` 由核心管理网络；`HOST` 接收宿主网络快照和回调 |
+| `event_buffer` | 默认 256，范围 1–4096 |
+| `under_network_extension` / `include_all_networks` | 按 Apple 宿主实际配置设置 |
+| `memory_profile` | `AUTO`、`DEFAULT` 或 `NETWORK_EXTENSION` |
+| `memory_limit_bytes` | 0 表示采用 profile 默认值；显式值至少 8 MiB |
+| `gc_percent` | 0 表示采用 profile 默认值；显式值为 1–1000 |
+| `host_capabilities` | `OPEN_TUN`、`PROTECT_SOCKET`、`CONNECTION_OWNER`；需使用 HOST 模式并提供处理器 |
 
-Config.config_json 是原生 sing-box 配置内容，并非另一个控制协议。它按固定核心版本解释，
-不承诺跨核心版本自动迁移。所有其他控制参数和宿主参数都有 protobuf 类型。
+各平台的网络模式、TUN 栈和内存策略见 [平台接入](hosts.md)。
 
-固定上游的模式管理器存在无锁读写；SDK 用不可变模式实例和与 reload 相同的停止/回滚流程
-完成 set_mode。相同模式不重启，新模式成功后 generation 递增；流量、测速历史和未持久化的
-节点选择等运行状态随实例重建。模式在同一 engine 内保留，destroy_engine 后回到配置默认值。
-不读取或写入上游缓存中的模式。拒绝 external_controller 和 api service，避免旁路修改生命周期与模式。
+## 控制方法
 
-get_status 的 state 为 stopped、starting、running、stopping、reloading、closed；generation 每次成功
-启动（包括模式切换、回滚）递增。流量是当前 generation 的累计值。go_memory_limit_bytes 和
-go_heap_alloc_bytes 是进程级 Go 数据，不是单实例或进程总 RSS。
+| 方法 | 行为 |
+|---|---|
+| `create_engine` / `destroy_engine` | 创建、销毁核心，保留消息会话 |
+| `check_config` | 构造并关闭校验实例，不启动监听器或 TUN |
+| `start` / `stop` | 启停核心；重复启动报错，重复停止安全；停止会取消在途测速 |
+| `reload` | 先校验，再替换实例；启动失败尝试恢复旧配置；中断已有连接 |
+| `get_info` / `get_status` | 版本、能力、状态、流量和 Go 内存数据 |
+| `list_groups` / `list_outbounds` | 代理组与出站；未测速时 `delay_ms` 不存在 |
+| `select_outbound` | 切换 selector 成员；失败时保留原选择 |
+| `url_test` | 对指定 HTTP(S) URL 发起 HEAD 测速，返回毫秒延迟 |
+| `set_mode` | 切换配置允许的模式，通过受控重启完成；相同模式不重启 |
+| `set_paused` | 设置设备暂停状态 |
+| `close_connections` | 关闭被跟踪的活动连接 |
+| `next_event` | 获取一个事件；等待超时返回 Empty，销毁唤醒等待者 |
+| `update_network` | 完整替换宿主物理网络和 DNS 快照；`default_interface=-1` 表示离线 |
+| `memory_pressure` | `NONE`、`WARNING`（GC）、`CRITICAL`（GC 并释放闲置页） |
 
-## 双向宿主消息
+`set_mode` 与 `reload` 均会中断已有连接，重建流量、测速历史和未持久化的节点选择等运行状态。模式在同一 engine 内保留；销毁后使用配置默认值，不读写上游缓存模式。配置不接受 `external_controller` 或 `api` service。
 
-核心通过唯一回调发送 HostRequest，并接收 HostResponse；双方都检查版本/id。
+`get_status.state` 为 `stopped`、`starting`、`running`、`stopping`、`reloading` 或 `closed`。每次成功启动（含模式切换、回滚）都会增加 `generation`，流量按当前 generation 统计。Go 内存数据属于整个进程。
 
-- open_tun：携带地址、MTU、DNS、路由、应用过滤和可选 HTTP 代理。宿主应用系统设置后返回
-  TunDescriptor.fd。FD 为借用，SDK 同步复制；SDK 关闭副本，宿主负责原 FD。
-- protect_socket：宿主对给定 FD 执行保护/绑定，返回 Empty 表示成功；失败中止拨号。
-- find_connection_owner：根据地址/端口返回自有 ConnectionOwner。
+## 宿主回调与 FD
 
-v1.14.4 核心只接受一个进程路径；适配层使用 process_paths 的首项，package_names 映射到
-上游的 AndroidPackageNames。protobuf 字段保留不变。宿主 DNS 搜索域保存在 SDK 网络快照中，
-继续用于本地 DNS 环境；不依赖开发分支新增的接口字段。
+核心发送带版本、id 和预算的 `HostRequest`，宿主返回对应的 `HostResponse`。
 
-回调只能发生在嵌入核心的同一进程。不能把 FD 整数通过远程 UI/管道当作可用描述符传递。
-回调可能并发、可能来自 Go 线程，不保证主线程；不要在回调中同步重入生命周期操作。
-销毁会等待在途回调并拒绝迟到回调，因此原生 context 必须保持到会话释放返回。
-宿主响应上限 64 KiB。
+| 回调 | 宿主职责 |
+|---|---|
+| `open_tun` | 应用地址、路由、DNS、MTU 等设置后，返回借用的原 FD |
+| `protect_socket` | 对给定 FD 执行保护或绑定；成功返回 Empty，失败中止拨号 |
+| `find_connection_owner` | 根据源/目标地址和端口返回连接归属 |
+
+SDK 同步复制 TUN FD 并管理副本；宿主保持原 FD 有效，直至核心清理完成。FD 只能在嵌入核心的同一进程内使用。Windows Wintun 使用 NATIVE 模式，不通过该 Unix FD 接口传递 HANDLE。
+
+回调可能并发并来自 Go 线程，宿主应遵守预算，且不能同步重入生命周期操作。回调处理器及其 native context 必须保持有效，直到会话释放返回。
+
+v1.14.4 使用 `process_paths` 的首项作为进程路径，`package_names` 用于应用包名匹配。DNS 搜索域保存在宿主网络快照中，用于本地 DNS 环境。
 
 ## 事件与错误
 
-事件是 typed Log 或 StateChange。队列满时丢弃最旧项并增加 dropped_events；
-日志限制为 16 KiB，truncated 表示被裁剪。事件只提供通知，权威状态以 get_status 为准。
+事件包含 `Log` 或 `StateChange`。队列满时丢弃最旧项并增加 `dropped_events`；日志最长 16 KiB，裁剪后设置 `truncated`。事件队列不是广播，多个消费者会分走事件；运行状态以 `get_status` 为准。
 
-错误码包括 invalid_argument、unsupported_version、unknown_method、uninitialized、invalid_state、
-not_running、closed、unsupported、not_found、start_failed、stop_failed、reload_failed、
-rollback_failed、canceled、host_error、io_error、core_error、internal_error、response_too_large。
-C 传输另有 invalid_handle。不要根据 message 文本分支，未知错误码按一般失败处理。
+按错误码处理失败，不依赖 message 文本。常见错误包括 `invalid_argument`、`unsupported`、`not_running`、`closed`、`canceled`、`host_error`、`start_failed` 和 `stop_failed`。`reload_failed` 表示旧配置已恢复；`rollback_failed` 表示恢复失败，核心已停止。未知错误码按一般失败处理。
 
-reload_failed 表示旧配置已恢复；rollback_failed 表示恢复失败，核心已停止。
+## C ABI
+
+以 [libbox.h](../include/libbox.h) 为接口定义，动态库提供四个函数：
+
+```c
+uint64_t libbox_session_new(void *context, libbox_host_message_handler callback);
+void *libbox_session_call(uint64_t session, void *request, uint64_t request_length,
+                         uint64_t *response_length);
+void libbox_free_buffer(void *value);
+void libbox_session_free(uint64_t session);
+```
+
+`session_new` 只分配传输句柄，核心通过 `create_engine` 初始化。`session_call` 的输入在调用期间有效，`response_length` 必须非空；返回缓冲区由 SDK 分配，必须且只能用 `libbox_free_buffer` 释放一次。
+
+宿主回调签名：
+
+```c
+typedef int64_t (*libbox_host_message_handler)(
+    void *context, const void *request, uint64_t request_length,
+    void *response, uint64_t response_capacity);
+```
+
+回调向容量为 65536 的输出区写入 HostResponse，返回字节数；负数表示桥接失败。所有输入、输出指针仅在调用期间有效。
+
+先发送 `destroy_engine` 可收到清理错误，再用 `session_free` 释放句柄。并发重复释放会等待同一次清理；清理期间新请求返回 `closed`，释放完成后返回 `invalid_handle`。句柄属于创建它的库实例，不能跨库使用。
+
+.NET 接入示例见 [CoreClient.cs](../examples/windows/CoreClient.cs)。
+
+## 流式传输
+
+[protocol/frame](../protocol/frame) 提供可选的 12 字节消息头：`LBXP`、u16 版本 1、u16 kind、u32 长度，数字采用小端。请求 kind=1，响应 kind=2，载荷为 1 字节至 4 MiB。
+
+C 调用和 Apple provider message 已有消息边界，直接使用原始 protobuf。自行建立特权 IPC 服务时，宿主负责调用方认证。

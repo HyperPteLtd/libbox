@@ -1,115 +1,51 @@
 # libbox
 
-独立的 sing-box 嵌入 SDK。Android、Windows、macOS、iOS 使用同一套 **protobuf 控制消息与宿主消息**。上游变化集中在 `internal/singbox`；不依赖上游 `experimental/libbox`，也不保留旧 JSON 控制接口。
+libbox 是用于 Android、Windows、macOS 和 iOS 的 sing-box 嵌入 SDK，提供配置校验、启停、重载、代理组控制、测速、运行状态和事件读取。
+
+核心固定为 **sing-box v1.14.4**，依赖由 [go.mod](go.mod) 和 [go.sum](go.sum) 锁定。升级时显式选择正式发布版本。
+
+## 接入方式
+
+宿主通过 protobuf `Request` / `Response` 调用 SDK，通过 `HostRequest` / `HostResponse` 提供 TUN 创建、socket 保护等系统能力。协议定义见 [control.proto](proto/libbox/v1/control.proto)。
+
+Go/gomobile 使用 `MessageSession`，C/.NET 使用动态库中的会话函数。典型调用顺序：
 
 ```text
-Android VpnService / Windows DLL host / Apple shared raw-TUN NetworkExtension
-                               ↓ Request / Response
-                         MessageSession
-                               ↓
-                    生命周期与内部数据结构
-                               ↓
-                      internal/singbox
-                               ↓
-                    固定正式版本的 sing-box
-
-核心 → HostRequest / HostResponse → 宿主系统 API
+创建消息会话 → create_engine → check_config → start
+运行期间：查询状态、选择节点、测速、读取事件
+结束：stop 或 destroy_engine → 释放消息会话
 ```
 
-配置文件仍是原生 sing-box JSON，通过 protobuf 的 `Config.config_json` 作为内容传递。TUN 数据直接走系统接口，不通过控制协议转发。
+`Config.config_json` 使用 sing-box v1.14.4 的原生 JSON 配置。TUN 数据直接通过系统接口传输。
 
-## 功能
-
-- 创建/销毁实例、配置校验、启停、重载失败恢复。
-- 状态、流量、代理组、节点选择、测速、模式、暂停和连接关闭。
-- 有界事件队列、单条日志 16 KiB 上限、请求大小限制和截止时间。
-- 一种宿主回调：`HostMessageHandler`。TUN 创建、socket 保护、连接归属都使用 protobuf。
-- 可选 NetworkExtension 内存 profile、进程级多实例协调、内存压力通知。
-- Android AAR、Apple XCFramework、Windows x64 DLL、macOS/Linux C 库构建入口。
-- 四端最小宿主示例、协议生成与兼容检查、真实本地代理测试和 C ABI 冒烟测试。
-
-## 单一接口
-
-Go / gomobile 公开入口：
-
-```go
-type HostMessageHandler interface {
-    HandleHostMessage(request []byte) ([]byte, error)
-}
-
-session := libbox.NewMessageSession(hostHandler) // native 模式可传 nil
-defer session.Close()                           // 原生资源清理
-responseBytes := session.HandleMessage(requestBytes)
-```
-
-先发送 `create_engine`，再发送 `start` 等请求；结束时发送 `destroy_engine`。
-宿主对象构造与释放只是语言绑定的资源管理，所有应用操作都在 protobuf 消息中。
-协议定义见 [control.proto](proto/libbox/v1/control.proto)，调用规则见 [API 文档](docs/api.md)。
-
-DLL 仅导出：
-
-```c
-libbox_session_new
-libbox_session_call
-libbox_free_buffer
-libbox_session_free
-```
-
-详见 [C ABI](docs/c-abi.md)。
-
-## 平台接入
-
-| 平台 | 接入与最小示例 | TUN 所有权 |
-|---|---|---|
-| Android API 24+ | [Java Activity + VpnService](examples/android)；AAR 含 arm64-v8a、armeabi-v7a、x86_64 | VpnService 持有原 FD，SDK 使用副本 |
-| Windows x64 | [.NET protobuf/DLL 宿主](examples/windows) | native 模式，由核心管理 Wintun |
-| macOS 13+ | [SwiftUI App + Network System Extension](examples/apple) | 与 iOS 共用 raw TUN FD Provider；NE 持有原 FD |
-| iOS 15+ | [SwiftUI App + PacketTunnelProvider](examples/apple) | 与 macOS 共用 Provider；SDK 只持有 FD 副本 |
-
-构建、签名要求及验证范围见 [宿主说明](docs/hosts.md)。本轮 Apple 统一工作仅进行源码检查、
-模拟 FD/生命周期单元测试和未签名编译，不运行真机、模拟器或系统 VPN。
+| 平台 | SDK 产物 | 宿主示例 | TUN 所有权 |
+|---|---|---|---|
+| Android API 24+ | AAR | [VpnService](examples/android) | 宿主持有原 FD，SDK 使用副本 |
+| Windows x64 | DLL + C 头文件 | [.NET](examples/windows) | 核心管理 Wintun |
+| macOS 13+ | XCFramework / 动态库 | [App + System Extension](examples/apple) | NetworkExtension 持有原 FD，SDK 使用副本 |
+| iOS 15+ | XCFramework | [App + Packet Tunnel Extension](examples/apple) | NetworkExtension 持有原 FD，SDK 使用副本 |
 
 ## 构建
 
-核心固定到正式发布版 [`sing-box v1.14.4`](https://github.com/SagerNet/sing-box/releases/tag/v1.14.4)：
-`github.com/sagernet/sing-box v1.14.4`。不跟踪开发分支、最新提交或预发布版本；升级时显式选择新的正式版本。
-`sing`、`sing-tun` 等核心依赖对齐该发布版的依赖集，并由 go.mod/go.sum 锁定。
-独立检出即可构建，无相邻源码或本地 replace 依赖。
+需要 Go 1.25.5 或更高版本。当前平台的 C 动态库还需要 C 编译器：
 
 ```bash
-make test
-make race
-make vet
-
-make native                 # 当前平台 C 库
-make windows                # Windows x64 DLL，需要 MinGW-w64
-make mobile-tools           # 固定 gomobile v0.1.13，安装到 tools/bin
-make android
-make apple
-
-python3 scripts/generate-protocol.py --check
+make native
 ```
 
-默认核心标签：`with_quic,with_wireguard,with_utls,with_clash_api`。
-Apple 移动端额外使用 `with_low_memory`。可选协议通过 `GO_TAGS` 控制；
-未编译的协议在配置阶段报错。版本与能力通过 `get_info` 查询。
-标准标签下，v1.14.4 的 TUN 默认使用 system 栈；mixed/gvisor 需要额外的 `with_gvisor` 标签，
-include_all_networks 必须使用 gvisor。该正式版不支持开发分支的 go 栈。
+产物为 `dist/<os>-<arch>/libbox.{dll,dylib,so}` 和 `libbox.h`。Android、Apple 和 Windows 交叉构建的工具链与命令见 [平台接入](docs/hosts.md)。
 
-产物在 `dist/`，平台示例的构建命令见 [宿主说明](docs/hosts.md)。
-`make clean` 清理本仓库构建产物和工具缓存；保留 protobuf 生成源码。
+默认构建标签为 `with_quic,with_wireguard,with_utls,with_clash_api`。Apple 移动端额外启用 `with_low_memory`；使用 mixed/gvisor TUN 栈需添加 `with_gvisor`。
 
-## 协议与升级
+```bash
+make test race vet          # 内部模块、协议测试及静态检查
+make clean                  # 清理本仓库产物与工具缓存
+```
 
-protobuf 字段编号不复用；兼容扩展添加字段或方法，不扩充原生桥接接口。
-公开 Go/C 接口、请求字段编号和线格式均有检查。SDK 协议版本与核心版本分开，
-原生核心配置格式仍随所固定核心演进。详见 [协议设计](docs/protocol.md) 和 [升级流程](docs/upgrading.md)。
+## 文档
 
-设计参考了 libclash，以及用户提供的 `singbox-desktop/src/core`：后者实际使用 mihomo，
-本项目借鉴其核心/分发/传输分层、protobuf 和 Apple FD 生命周期，未移植其产品配置编排、
-服务用户所有权或 UI 逻辑。
+- [API](docs/api.md)：会话、protobuf 方法、宿主回调和 C ABI。
+- [平台接入](docs/hosts.md)：构建产物、宿主集成、FD 所有权及 Apple 内存配置。
+- [维护指南](docs/maintenance.md)：协议生成、核心升级、检查命令和清理范围。
 
-Apple 两端还参考 Hyper mobile / desktop 的 raw TUN FD 设计，共用 `examples/apple/Shared`，
-仅部署入口和必要的系统策略保留平台区别。
-
-GPL-3.0-or-later，见 [LICENSE](LICENSE) 和 [NOTICE](NOTICE)。
+GPL-3.0-or-later，详见 [LICENSE](LICENSE) 和 [NOTICE](NOTICE)。
