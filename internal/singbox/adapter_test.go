@@ -16,6 +16,7 @@ import (
 
 	"github.com/HyperPteLtd/libbox/internal/contract"
 	mDNS "github.com/miekg/dns"
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/dns/transport/local"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
@@ -175,7 +176,7 @@ func TestHostDNSUpdateAndTCPFallback(t *testing.T) {
 	if err != nil || len(response.Answer) != 1 || response.Truncated {
 		t.Fatalf("DNS fallback failed: %v %v", response, err)
 	}
-	if err = p.update(contract.Network{DefaultInterface: 2, Interfaces: []contract.Interface{{Index: 2, Name: "next", MTU: 1500, DNSServers: []string{"127.0.0.3"}}}}); err != nil {
+	if err = p.update(contract.Network{DefaultInterface: 2, Interfaces: []contract.Interface{{Index: 2, Name: "next", MTU: 1500, DNSServers: []string{"127.0.0.3"}, DNSSearchDomains: []string{"sdk.test"}}}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = h.Exchange(context.Background(), question); err != nil {
@@ -190,11 +191,35 @@ func TestHostDNSUpdateAndTCPFallback(t *testing.T) {
 	if h.ServerAddresses()[0] != netip.MustParseAddr("127.0.0.3") {
 		t.Fatal("stale resolver metadata")
 	}
+	domains := h.SearchDomains()
+	if len(domains) != 1 || domains[0] != "sdk.test" {
+		t.Fatal("lost search domains in the release adapter", domains)
+	}
+	domains[0] = "mutated.test"
+	if values := h.Environment(); len(values) != 2 || values[1] != "sdk.test" {
+		t.Fatal("DNS environment lost or aliased the host snapshot", values)
+	}
 	if err = p.update(contract.Network{DefaultInterface: -1}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = h.Exchange(context.Background(), question); err == nil {
 		t.Fatal("offline DNS silently fell back to process resolver")
+	}
+}
+
+func TestReleaseConnectionOwnerMapping(t *testing.T) {
+	owner := contract.ConnectionOwner{UserID: 42, ProcessID: 100, UserName: "test", ProcessPaths: []string{"/primary", "/secondary"}, PackageNames: []string{"test.package"}}
+	p := newPlatform(contract.Options{}, contract.Hooks{FindConnectionOwner: func(contract.ConnectionRequest) (contract.ConnectionOwner, error) { return owner, nil }}, contract.Network{})
+	result, err := p.FindConnectionOwner(&adapter.FindConnectionOwnerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.UserId != owner.UserID || result.ProcessID != owner.ProcessID || result.UserName != owner.UserName || result.ProcessPath != "/primary" || len(result.AndroidPackageNames) != 1 || result.AndroidPackageNames[0] != "test.package" {
+		t.Fatalf("incorrect release owner mapping: %+v", result)
+	}
+	result.AndroidPackageNames[0] = "mutated"
+	if owner.PackageNames[0] != "test.package" {
+		t.Fatal("owner package names alias the host result")
 	}
 }
 

@@ -3,6 +3,7 @@ package singbox
 import (
 	"github.com/HyperPteLtd/libbox/internal/contract"
 	"github.com/sagernet/sing-box/option"
+	tun "github.com/sagernet/sing-tun"
 	"testing"
 )
 
@@ -12,6 +13,25 @@ func tunConfig(count int) option.Options {
 		parsed.Inbounds = append(parsed.Inbounds, option.Inbound{Type: "tun", Options: &option.TunInboundOptions{}})
 	}
 	return parsed
+}
+
+func TestReleaseTUNStacks(t *testing.T) {
+	for _, stack := range []string{"", "system", "mixed", "gvisor", "go", "unknown"} {
+		parsed := tunConfig(1)
+		parsed.Inbounds[0].Options.(*option.TunInboundOptions).Stack = stack
+		err := preparePlatformOptions(&parsed, contract.Options{NetworkMode: "host"}, contract.Hooks{}, true, "android")
+		allowed := stack == "" || stack == "system" || tun.WithGVisor && (stack == "mixed" || stack == "gvisor")
+		if (err == nil) != allowed {
+			t.Fatalf("stack=%s compiled gvisor=%v error=%v", stack, tun.WithGVisor, err)
+		}
+		parsed = tunConfig(1)
+		parsed.Inbounds[0].Options.(*option.TunInboundOptions).Stack = stack
+		err = preparePlatformOptions(&parsed, contract.Options{NetworkMode: "host", UnderNetworkExtension: true, IncludeAllNetworks: true}, contract.Hooks{}, true, "ios")
+		allowed = tun.WithGVisor && (stack == "" || stack == "gvisor")
+		if (err == nil) != allowed {
+			t.Fatalf("include_all_networks stack=%s compiled gvisor=%v error=%v", stack, tun.WithGVisor, err)
+		}
+	}
 }
 func TestAppleRawTUNPolicy(t *testing.T) {
 	for _, goos := range []string{"darwin", "ios"} {

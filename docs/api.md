@@ -59,7 +59,9 @@ Close 开始后拒绝新请求，并等待正在执行的核心调用与宿主�
 Wintun HANDLE。macOS/iOS 的 TUN 统一采用 HOST raw FD，每个 NetworkExtension 配置恰好一个 TUN。
 HOST 模式保留接口选择和保护控制，拒绝配置中的显式 bind_interface、
 inet4_bind_address、inet6_bind_address、default_interface、protect_path、netns。
-include_all_networks 不接受 system/mixed 栈，使用默认 go 或可选 gvisor。
+当前核心为正式版 v1.14.4，标准构建默认使用 system 栈；mixed/gvisor 需要 with_gvisor 标签。
+include_all_networks 必须使用 gvisor（显式指定或由空 stack 自动选择），缺少该标签时在配置阶段报错。
+该版本不支持 go 栈。
 iOS NetworkExtension 的出站使用系统 NECP 路由，不固定物理 APN；macOS 根据物理网络快照绑定出站。
 因此 iOS NE 不启用 auto_detect_interface，也不接受 default_network_strategy；两端的数据面仍共用 raw FD。
 
@@ -102,6 +104,10 @@ go_heap_alloc_bytes 是进程级 Go 数据，不是单实例或进程总 RSS。
   TunDescriptor.fd。FD 为借用，SDK 同步复制；SDK 关闭副本，宿主负责原 FD。
 - protect_socket：宿主对给定 FD 执行保护/绑定，返回 Empty 表示成功；失败中止拨号。
 - find_connection_owner：根据地址/端口返回自有 ConnectionOwner。
+
+v1.14.4 核心只接受一个进程路径；适配层使用 process_paths 的首项，package_names 映射到
+上游的 AndroidPackageNames。protobuf 字段保留不变。宿主 DNS 搜索域保存在 SDK 网络快照中，
+继续用于本地 DNS 环境；不依赖开发分支新增的接口字段。
 
 回调只能发生在嵌入核心的同一进程。不能把 FD 整数通过远程 UI/管道当作可用描述符传递。
 回调可能并发、可能来自 Go 线程，不保证主线程；不要在回调中同步重入生命周期操作。

@@ -11,7 +11,7 @@ Android VpnService / Windows DLL host / Apple shared raw-TUN NetworkExtension
                                ↓
                       internal/singbox
                                ↓
-                    固定提交的 sing-box
+                    固定正式版本的 sing-box
 
 核心 → HostRequest / HostResponse → 宿主系统 API
 ```
@@ -71,8 +71,9 @@ libbox_session_free
 
 ## 构建
 
-核心固定到 `72b3c1cc2cb178b7a9120d4c64c61fcad6b1fd46`：
-`github.com/sagernet/sing-box v1.14.5-0.20261103042725-72b3c1cc2cb1`。
+核心固定到正式发布版 [`sing-box v1.14.4`](https://github.com/SagerNet/sing-box/releases/tag/v1.14.4)：
+`github.com/sagernet/sing-box v1.14.4`。不跟踪开发分支、最新提交或预发布版本；升级时显式选择新的正式版本。
+`sing`、`sing-tun` 等核心依赖对齐该发布版的依赖集，并由 go.mod/go.sum 锁定。
 独立检出即可构建，无相邻源码或本地 replace 依赖。
 
 ```bash
@@ -92,6 +93,8 @@ python3 scripts/generate-protocol.py --check
 默认核心标签：`with_quic,with_wireguard,with_utls,with_clash_api`。
 Apple 移动端额外使用 `with_low_memory`。可选协议通过 `GO_TAGS` 控制；
 未编译的协议在配置阶段报错。版本与能力通过 `get_info` 查询。
+标准标签下，v1.14.4 的 TUN 默认使用 system 栈；mixed/gvisor 需要额外的 `with_gvisor` 标签，
+include_all_networks 必须使用 gvisor。该正式版不支持开发分支的 go 栈。
 
 产物在 `dist/`，平台示例的构建命令见 [宿主说明](docs/hosts.md)。
 `make clean` 清理本仓库构建产物和工具缓存；保留 protobuf 生成源码。
