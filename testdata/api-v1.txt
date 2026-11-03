@@ -1,0 +1,8 @@
+(*MessageSession).Close() error
+(*MessageSession).HandleMessage(request []byte) []byte
+NewMessageSession(handler HostMessageHandler) *MessageSession
+type HostMessageHandler interface {
+	HandleHostMessage(request []byte) ([]byte, error)
+}
+type MessageSession struct {
+}

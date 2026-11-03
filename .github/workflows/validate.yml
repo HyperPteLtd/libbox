@@ -1,0 +1,61 @@
+name: Validate SDK
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r scripts/requirements-smoke.txt
+      - run: python scripts/generate-protocol.py --check
+      - run: make race vet
+      - if: runner.os == 'macOS'
+        run: bash scripts/test-apple-host.sh
+      - run: make native
+      - shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            python3 scripts/smoke-protobuf.py "dist/$(go env GOOS)-$(go env GOARCH)/libbox.dylib"
+          else
+            python3 scripts/smoke-protobuf.py "dist/$(go env GOOS)-$(go env GOARCH)/libbox.so"
+          fi
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          path-type: inherit
+          install: mingw-w64-ucrt-x86_64-gcc
+      - shell: msys2 {0}
+        run: |
+          export CC=gcc
+          go test -mod=readonly -tags 'with_quic,with_wireguard,with_utls,with_clash_api' ./...
+          bash scripts/build-windows.sh
+      - run: python -m pip install -r scripts/requirements-smoke.txt
+      - run: python scripts/smoke-protobuf.py dist/windows-amd64/libbox.dll
+      - run: dotnet run --project examples/windows/LibboxHost.csproj -c Release -- --smoke

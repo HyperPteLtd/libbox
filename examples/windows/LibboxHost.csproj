@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Tests/**/*.cs" />
+    <PackageReference Include="Google.Protobuf" Version="3.33.4" />
+    <None Include="../../dist/windows-amd64/libbox.dll" Link="libbox.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../dist/windows-amd64/libbox.dll')" />
+    <None Include="tun.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

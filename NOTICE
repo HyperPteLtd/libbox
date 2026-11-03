@@ -1,0 +1,26 @@
+libbox
+Copyright (C) 2026 libbox contributors
+SPDX-License-Identifier: GPL-3.0-or-later
+
+This SDK embeds sing-box and adapts its public Go packages and platform
+integration interfaces. Upstream source: https://github.com/SagerNet/sing-box
+Pinned commit: 72b3c1cc2cb178b7a9120d4c64c61fcad6b1fd46
+
+sing-box copyright notice:
+Copyright (C) 2022 by nekohasekai <contact-sagernet@sekai.icu>
+Licensed under GNU GPL version 3 or, at your option, any later version.
+
+The architecture was informed by https://github.com/Herta-Network/libclash .
+No runtime dependency on libclash or sing-box/experimental/libbox is used.
+
+Host/control design was also informed by the user-provided desktop core
+(module github.com/Ember-Moth/Solaris/src/core), including its protobuf
+transport separation and host-owned Apple TUN descriptor lifecycle.
+The pinned protoc archive metadata is adopted from that project's toolchain lock.
+
+The shared Apple raw-FD host also follows the user-provided Hyper mobile and
+HyperVPN desktop ownership model: NetworkExtension owns the original utun,
+the embedded core owns a duplicate, and no packetFlow reader competes with it.
+
+Additional Go dependencies retain their respective copyright and license
+notices in their module sources. Versions and checksums are in go.mod/go.sum.

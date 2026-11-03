@@ -1,0 +1,17 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.hyperpteltd.libbox.example'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.hyperpteltd.libbox.example'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies {
+    implementation files('../../../dist/mobile/libbox.aar')
+    implementation 'com.google.protobuf:protobuf-javalite:4.33.4'
+}

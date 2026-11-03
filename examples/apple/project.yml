@@ -1,0 +1,108 @@
+name: LibboxHost
+options:
+  bundleIdPrefix: com.hyperpteltd.libbox.example
+  deploymentTarget:
+    iOS: '15.0'
+    macOS: '13.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_STRICT_CONCURRENCY: minimal
+packages:
+  SwiftProtobuf:
+    url: https://github.com/apple/swift-protobuf.git
+    exactVersion: 1.32.0
+targetTemplates:
+  SharedPacketTunnel:
+    sources: [Shared, Generated]
+    dependencies:
+      - framework: ../../dist/mobile/Libbox.xcframework
+        embed: false
+      - package: SwiftProtobuf
+      - sdk: NetworkExtension.framework
+      - sdk: Network.framework
+      - sdk: Security.framework
+      - sdk: SystemConfiguration.framework
+      - sdk: libresolv.tbd
+    settings:
+      base:
+        APPLICATION_EXTENSION_API_ONLY: YES
+  SharedHostApp:
+    sources:
+      - path: App
+        excludes: [Info.plist, Host.entitlements]
+      - path: Generated
+    dependencies:
+      - package: SwiftProtobuf
+      - sdk: NetworkExtension.framework
+targets:
+  LibboxHost:
+    type: application
+    platform: iOS
+    templates: [SharedHostApp]
+    dependencies:
+      - target: PacketTunnel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hyperpteltd.libbox.example
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/Host.entitlements
+        TARGETED_DEVICE_FAMILY: '1,2'
+        ASSETCATALOG_COMPILER_APPICON_NAME: ''
+  PacketTunnel:
+    type: app-extension
+    platform: iOS
+    templates: [SharedPacketTunnel]
+    dependencies:
+      - sdk: UIKit.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hyperpteltd.libbox.example.tunnel
+        INFOPLIST_FILE: Tunnel/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Tunnel/Tunnel.entitlements
+  MacHost:
+    type: application
+    platform: macOS
+    templates: [SharedHostApp]
+    sources:
+      - path: MacApp
+        excludes: [Info.plist, Host.entitlements]
+    dependencies:
+      - target: MacPacketTunnel
+        embed: true
+        codeSign: false
+        copy:
+          destination: wrapper
+          subpath: Contents/Library/SystemExtensions
+      - sdk: SystemExtensions.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hyperpteltd.libbox.example.macos
+        INFOPLIST_FILE: MacApp/Info.plist
+        CODE_SIGN_ENTITLEMENTS: MacApp/Host.entitlements
+  MacPacketTunnel:
+    type: system-extension
+    productName: com.hyperpteltd.libbox.example.macos.tunnel
+    platform: macOS
+    templates: [SharedPacketTunnel]
+    sources:
+      - path: MacExtension
+        excludes: [Info.plist, Tunnel.entitlements]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hyperpteltd.libbox.example.macos.tunnel
+        PRODUCT_NAME: com.hyperpteltd.libbox.example.macos.tunnel
+        PRODUCT_MODULE_NAME: LibboxPacketTunnel
+        INFOPLIST_FILE: MacExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: MacExtension/Tunnel.entitlements
+        SKIP_INSTALL: YES
+schemes:
+  LibboxHost:
+    build:
+      targets:
+        LibboxHost: all
+  MacHost:
+    build:
+      targets:
+        MacHost: all

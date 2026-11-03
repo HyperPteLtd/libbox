@@ -1,0 +1,207 @@
+syntax = "proto3";
+package libbox.control.v1;
+
+option go_package = "github.com/HyperPteLtd/libbox/protocol/v1;protocol";
+option java_package = "com.hyperpteltd.libbox.protocol";
+option java_multiple_files = true;
+option csharp_namespace = "Hyper.Libbox.Protocol";
+option swift_prefix = "LBX";
+
+// Independent of sing-box's configuration schema and daemon protocol.
+// Never reuse field numbers. Additions preserve v1; incompatible changes need v2.
+message Request {
+  uint32 protocol_version = 1;
+  uint64 id = 2;
+  uint32 timeout_ms = 3;
+  int64 deadline_unix_ms = 4;
+  oneof method {
+    Empty get_info = 10;
+    Config check_config = 11;
+    Config start = 12;
+    Config reload = 13;
+    Empty stop = 14;
+    Empty get_status = 15;
+    Empty list_groups = 16;
+    Empty list_outbounds = 17;
+    SelectOutbound select_outbound = 18;
+    URLTest url_test = 19;
+    SetMode set_mode = 20;
+    SetPaused set_paused = 21;
+    Empty close_connections = 22;
+    NextEvent next_event = 23;
+    Network update_network = 24;
+    MemoryPressure memory_pressure = 25;
+    EngineOptions create_engine = 26;
+    Empty destroy_engine = 27;
+  }
+}
+message Response {
+  uint32 protocol_version = 1;
+  uint64 id = 2;
+  oneof result {
+    Error error = 3;
+    Empty empty = 4;
+    Info info = 10;
+    Status status = 15;
+    Groups groups = 16;
+    Outbounds outbounds = 17;
+    Delay delay = 19;
+    Event event = 23;
+    Info created = 26;
+  }
+}
+message Empty {}
+message EngineOptions {
+  enum NetworkMode { NATIVE = 0; HOST = 1; }
+  enum MemoryProfile { AUTO = 0; DEFAULT = 1; NETWORK_EXTENSION = 2; }
+  enum HostCapability { HOST_CAPABILITY_UNSPECIFIED = 0; OPEN_TUN = 1; PROTECT_SOCKET = 2; CONNECTION_OWNER = 3; }
+  string working_directory = 1;
+  string temp_directory = 2;
+  NetworkMode network_mode = 3;
+  optional uint32 event_buffer = 4;
+  bool under_network_extension = 5;
+  bool include_all_networks = 6;
+  MemoryProfile memory_profile = 7;
+  int64 memory_limit_bytes = 8;
+  uint32 gc_percent = 9;
+  repeated HostCapability host_capabilities = 10;
+}
+message Error { string code = 1; string message = 2; }
+message Config { string config_json = 1; }
+message SelectOutbound { string group = 1; string outbound = 2; }
+message URLTest { string outbound = 1; string url = 2; uint32 timeout_ms = 3; }
+message SetMode { string mode = 1; }
+message SetPaused { bool paused = 1; }
+message NextEvent { uint32 timeout_ms = 1; }
+message MemoryPressure {
+  enum Level { NONE = 0; WARNING = 1; CRITICAL = 2; }
+  Level level = 1;
+}
+message Info {
+  uint32 api_version = 1;
+  string sdk_version = 2;
+  string core_version = 3;
+  string build_tags = 4;
+  string goos = 5;
+  string goarch = 6;
+  repeated string capabilities = 7;
+}
+message Status {
+  string state = 1;
+  uint64 generation = 2;
+  int64 started_at_unix_ms = 3;
+  uint64 dropped_events = 4;
+  Error last_error = 5;
+  int64 upload_bytes = 6;
+  int64 download_bytes = 7;
+  uint64 connections = 8;
+  string mode = 9;
+  repeated string modes = 10;
+  bool paused = 11;
+  int64 go_memory_limit_bytes = 12;
+  uint64 go_heap_alloc_bytes = 13;
+}
+message Outbound {
+  string tag = 1;
+  string type = 2;
+  optional int32 delay_ms = 3;
+}
+message Group {
+  string tag = 1;
+  string type = 2;
+  string selected = 3;
+  bool selectable = 4;
+  repeated Outbound outbounds = 5;
+}
+message Groups { repeated Group groups = 1; }
+message Outbounds { repeated Outbound outbounds = 1; }
+message Delay { int32 delay_ms = 1; }
+message Network {
+  int32 default_interface = 1; // -1 means offline, with an empty interface list.
+  repeated Interface interfaces = 2;
+  string wifi_ssid = 3;
+  string wifi_bssid = 4;
+}
+message Interface {
+  int32 index = 1;
+  string name = 2;
+  int32 mtu = 3;
+  repeated string addresses = 4;
+  repeated string dns_servers = 5;
+  repeated string dns_search_domains = 6;
+  string type = 7;
+  bool metered = 8;
+  bool constrained = 9;
+  bool loopback = 10;
+}
+message Event {
+  reserved 15;
+  uint64 sequence = 1;
+  int64 time_unix_ms = 2;
+  oneof data {
+    Log log = 3;
+    StateChange state = 4;
+  }
+}
+message Log { string level = 1; string message = 2; bool truncated = 3; }
+message StateChange { string state = 1; Error error = 2; }
+
+// Reverse calls use the same protobuf-only model. A descriptor is process-local;
+// host callbacks run in the process embedding the core, never in a remote UI.
+message HostRequest {
+  uint32 protocol_version = 1;
+  uint64 id = 2;
+  uint32 timeout_ms = 3;
+  oneof method {
+    TunOptions open_tun = 10;
+    Socket protect_socket = 11;
+    ConnectionRequest find_connection_owner = 12;
+  }
+}
+message HostResponse {
+  uint32 protocol_version = 1;
+  uint64 id = 2;
+  oneof result {
+    Error error = 3;
+    Empty empty = 4;
+    TunDescriptor tun = 10;
+    ConnectionOwner connection_owner = 12;
+  }
+}
+message Socket { int32 fd = 1; }
+message TunDescriptor { int32 fd = 1; }
+message TunOptions {
+  string name = 1;
+  uint32 mtu = 2;
+  repeated string addresses = 3;
+  repeated string dns_servers = 4;
+  string dns_mode = 5;
+  bool auto_route = 6;
+  bool strict_route = 7;
+  repeated string routes = 8;
+  repeated string exclude_routes = 9;
+  repeated string include_packages = 10;
+  repeated string exclude_packages = 11;
+  HTTPProxy http_proxy = 12;
+}
+message HTTPProxy {
+  bool enabled = 1;
+  string server = 2;
+  uint32 port = 3;
+  repeated string bypass_domains = 4;
+  repeated string match_domains = 5;
+}
+message ConnectionRequest {
+  int32 protocol = 1;
+  string source_address = 2;
+  int32 source_port = 3;
+  string destination_address = 4;
+  int32 destination_port = 5;
+}
+message ConnectionOwner {
+  int32 user_id = 1;
+  uint32 process_id = 2;
+  string user_name = 3;
+  repeated string process_paths = 4;
+  repeated string package_names = 5;
+}

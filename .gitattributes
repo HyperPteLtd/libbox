@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.pb -text
+*.jar -text
+*.zip -text

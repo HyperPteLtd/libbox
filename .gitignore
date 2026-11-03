@@ -1,0 +1,16 @@
+/dist/
+/_build/
+/build/
+/tools/bin/
+*.xcframework/
+*.aar
+.DS_Store
+**/bin/
+**/obj/
+**/.gradle/
+**/.kotlin/
+**/local.properties
+**/*.xcodeproj/
+**/__pycache__/
+/examples/android/app/build/
+/examples/android/build/
