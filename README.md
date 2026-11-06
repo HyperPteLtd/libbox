@@ -1,6 +1,6 @@
 # libbox
 
-libbox 是用于 Android、Windows、macOS 和 iOS 的 sing-box 嵌入 SDK，提供配置校验、启停、重载、代理组控制、测速、运行状态和事件读取。
+libbox 是用于 Android、Windows、macOS 和 iOS 的 sing-box 嵌入 SDK，提供配置校验、启停、重载、代理组控制、测速、运行状态和事件读取，并在核心上注册了按站点分配节点的 [`loadbalance` 出站组](docs/api.md#loadbalance-出站组)。
 
 核心固定为 **sing-box v1.14.4**，依赖由 [go.mod](go.mod) 和 [go.sum](go.sum) 锁定。升级时显式选择正式发布版本。
 

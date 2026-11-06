@@ -1,6 +1,6 @@
 # API
 
-控制协议为 protobuf v1，完整消息定义见 [control.proto](../proto/libbox/v1/control.proto)。`Config.config_json` 按固定的 sing-box v1.14.4 配置格式解释。
+控制协议为 protobuf v1，完整消息定义见 [control.proto](../proto/libbox/v1/control.proto)。`Config.config_json` 按固定的 sing-box v1.14.4 配置格式解释，另外支持 SDK 自带的 [`loadbalance` 出站组](#loadbalance-出站组)。
 
 ## 会话与生命周期
 
@@ -66,7 +66,7 @@ func (*MessageSession) Close() error
 | `start` / `stop` | 启停核心；重复启动报错，重复停止安全；停止会取消在途测速 |
 | `reload` | 先校验，再替换实例；启动失败尝试恢复旧配置；中断已有连接 |
 | `get_info` / `get_status` | 版本、能力、状态、流量和 Go 内存数据 |
-| `list_groups` / `list_outbounds` | 代理组与出站；未测速时 `delay_ms` 不存在 |
+| `list_groups` / `list_outbounds` | 代理组与出站；未测速时 `delay_ms` 不存在；`loadbalance` 组的 `selected` 为代表节点 |
 | `select_outbound` | 切换 selector 成员；失败时保留原选择 |
 | `url_test` | 对指定 HTTP(S) URL 发起 HEAD 测速，返回毫秒延迟 |
 | `set_mode` | 切换配置允许的模式，通过受控重启完成；相同模式不重启 |
@@ -79,6 +79,40 @@ func (*MessageSession) Close() error
 `set_mode` 与 `reload` 均会中断已有连接，重建流量、测速历史和未持久化的节点选择等运行状态。模式在同一 engine 内保留；销毁后使用配置默认值，不读写上游缓存模式。配置不接受 `external_controller` 或 `api` service。
 
 `get_status.state` 为 `stopped`、`starting`、`running`、`stopping`、`reloading` 或 `closed`。每次成功启动（含模式切换、回滚）都会增加 `generation`，流量按当前 generation 统计。Go 内存数据属于整个进程。
+
+## loadbalance 出站组
+
+`loadbalance` 是 SDK 在固定的 sing-box 核心上注册的出站组类型，未修改或替换上游模块。`check_config`、`start`、`reload` 都识别该类型；`get_info.capabilities` 含 `loadbalance_group` 时可用。
+
+```json
+{ "type": "loadbalance", "tag": "JP", "outbounds": ["jp-1", "jp-2", "jp-3"],
+  "strategy": "consistent-hashing", "url": "https://www.gstatic.com/generate_204",
+  "interval": "3m", "tolerance": 150, "fallback": "HK", "interrupt_exist_connections": true }
+```
+
+| 字段 | 规则 |
+|---|---|
+| `outbounds` | 必填，成员出站或组的标签；不能重复，不能包含组自身 |
+| `strategy` | 只支持 `consistent-hashing`，可省略；其他值使配置无效 |
+| `url` | 健康检查地址，绝对 HTTP(S) URL；默认 `https://www.gstatic.com/generate_204` |
+| `interval` | 健康检查周期，默认 `3m`；不得大于 `idle_timeout` |
+| `idle_timeout` | 组内无新连接超过该时长后暂停周期检查，默认 `30m`；再次有连接时立即补测 |
+| `tolerance` | 毫秒。大于 0 时只在延迟不超过最快健康成员加该值的成员间分配；0（默认）不按延迟筛选 |
+| `recovery_checks` | 故障成员连续通过多少轮检查后重新加入，默认 2 |
+| `fallback` | 可选，组内没有健康成员时使用的出站或组，例如另一个国家组 |
+| `interrupt_exist_connections` | 成员被判定故障、或兜底解除时，同时断开应用的现有连接 |
+
+**分配。** 连接按目标站点做一致性哈希（rendezvous 哈希）：有域名时取可注册域名（eTLD+1，例如 `img.example.co.uk` 取 `example.co.uk`），目标是 IP 但路由已嗅探或解析出域名时使用该域名，否则使用目标 IP。同一站点稳定使用同一成员，不同站点分散到各成员。成员增减只影响少量站点：移除的成员把它的站点交给各站点的下一顺位，新增的成员只接手约 1/n 的站点。UDP 按 `ListenPacket` 或 UDP 拨号时的目标地址分配，不支持该网络的成员不参与。
+
+**健康与故障转移。** 启动后先检查一轮，之后在组有流量时按 `interval` 检查；网络变化后立即重测。拨号失败的成员立即停止分配，同时触发一轮检查。选中成员拨号失败时，按该站点的哈希顺序换下一个健康成员，单次连接最多尝试 3 个出站。重试只发生在向调用方返回连接之前，此时应用数据尚未交给任何出站，不会重复发送；连接建立后的失败不重试。调用方取消的拨号不算成员故障。
+
+**恢复。** 故障成员需连续通过 `recovery_checks` 轮检查（包括拨号失败后立即触发的那一轮）才重新加入，避免站点出口反复切换；任一轮失败重新计数。网络变化后的那一轮只需一次成功。
+
+**兜底。** 没有健康成员时新连接走 `fallback`；兜底也失败或未配置时，按哈希顺序尝试故障成员。两个组可以互为兜底，同一次拨号不会循环。成员恢复后兜底解除。
+
+**断开现有连接。** 成员被判定故障时，经该成员的内部连接（如 DNS 或其他出站以该组为 detour 的连接）总是断开；应用连接只在 `interrupt_exist_connections` 为 true 时断开。兜底解除时，对经兜底的连接按同样规则处理。成员恢复或延迟变化不会断开连接。
+
+**展示。** `list_groups` 中该组 `selectable=false`，`outbounds` 为成员，`selected` 为代表节点：最快的健康成员；兜底期间为兜底标签。组自身的延迟为代表节点的延迟，兜底期间不存在。`url_test` 可以对组或成员测速；对组测速时按测试地址的站点选择成员。`select_outbound` 不适用于该组。
 
 ## 宿主回调与 FD
 
@@ -98,7 +132,9 @@ v1.14.4 使用 `process_paths` 的首项作为进程路径，`package_names` 用
 
 ## 事件与错误
 
-事件包含 `Log` 或 `StateChange`。队列满时丢弃最旧项并增加 `dropped_events`；日志最长 16 KiB，裁剪后设置 `truncated`。事件队列不是广播，多个消费者会分走事件；运行状态以 `get_status` 为准。
+事件包含 `Log`、`StateChange` 或 `GroupHealth`。队列满时丢弃最旧项并增加 `dropped_events`；日志最长 16 KiB，裁剪后设置 `truncated`。事件队列不是广播，多个消费者会分走事件；运行状态以 `get_status` 为准。
+
+`GroupHealth` 在 `loadbalance` 组的成员健康变化时发送，兜底的启用和解除也随之发送。每个事件都是该组的完整快照：`healthy` 为接收新连接的成员，`unhealthy` 为故障或仍在恢复期的成员，`fallback` 在兜底期间为兜底标签、否则为空。旧事件被丢弃时，以该组最新的事件为准。不认识该分支的旧宿主会收到未设置 `data` 的事件，应忽略。
 
 按错误码处理失败，不依赖 message 文本。常见错误包括 `invalid_argument`、`unsupported`、`not_running`、`closed`、`canceled`、`host_error`、`start_failed` 和 `stop_failed`。`reload_failed` 表示旧配置已恢复；`rollback_failed` 表示恢复失败，核心已停止。未知错误码按一般失败处理。
 

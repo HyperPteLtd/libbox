@@ -8,6 +8,12 @@
 
 升级后核对配置格式、宿主接口和依赖解析结果。Go 的版本选择可能保留既有较高版本，因此只修改 sing-box 一项依赖并不等于对齐发布依赖集。
 
+SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 `internal/singbox/registry.go` 注册到上游出站注册表，其余注册表与 `include.Context` 保持一致。升级时还要核对：
+
+- `include` 各注册表函数和 `box.Context` 的签名；上游是否自行注册了 `loadbalance` 类型（注册表测试会报错）。
+- 路由对组的解析：v1.14.4 通过 `Selected` 找到链末端出站后直接拨号，因此组的 `Selected` 返回按站点哈希的内部出站，展示用 `Current`。
+- 复用的接口：`group.URLTestOutbounds`、`group.RealTag`、`urltest.HistoryStorage`、`interrupt.Group`、`pause.RegisterTicker`、`adapter.OutboundGroup` / `URLTestGroup` / `Referrer` / `InterfaceUpdateListener` 及 `adapter.ContextFrom` 中的目标元数据。
+
 ## 协议生成与兼容
 
 消息定义为 [control.proto](../proto/libbox/v1/control.proto)。兼容扩展新增字段或方法，字段编号不复用；删除字段时保留 `reserved`。不兼容变化需要升级协议主版本。
