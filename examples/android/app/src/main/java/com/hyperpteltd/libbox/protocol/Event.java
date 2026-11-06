@@ -22,6 +22,7 @@ public  final class Event extends
       implements com.google.protobuf.AbstractMessageLite.InternalOneOfEnum {
     LOG(3),
     STATE(4),
+    GROUP_HEALTH(5),
     DATA_NOT_SET(0);
     private final int value;
     private DataCase(int value) {
@@ -39,6 +40,7 @@ public  final class Event extends
       switch (value) {
         case 3: return LOG;
         case 4: return STATE;
+        case 5: return GROUP_HEALTH;
         case 0: return DATA_NOT_SET;
         default: return null;
       }
@@ -211,6 +213,58 @@ public  final class Event extends
    */
   private void clearState() {
     if (dataCase_ == 4) {
+      dataCase_ = 0;
+      data_ = null;
+    }
+  }
+
+  public static final int GROUP_HEALTH_FIELD_NUMBER = 5;
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   */
+  @java.lang.Override
+  public boolean hasGroupHealth() {
+    return dataCase_ == 5;
+  }
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   */
+  @java.lang.Override
+  public com.hyperpteltd.libbox.protocol.GroupHealth getGroupHealth() {
+    if (dataCase_ == 5) {
+       return (com.hyperpteltd.libbox.protocol.GroupHealth) data_;
+    }
+    return com.hyperpteltd.libbox.protocol.GroupHealth.getDefaultInstance();
+  }
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   */
+  @java.lang.SuppressWarnings("ReturnValueIgnored")
+  private void setGroupHealth(com.hyperpteltd.libbox.protocol.GroupHealth value) {
+    value.getClass();  // minimal bytecode null check
+    data_ = value;
+    dataCase_ = 5;
+  }
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   */
+  @java.lang.SuppressWarnings("ReturnValueIgnored")
+  private void mergeGroupHealth(com.hyperpteltd.libbox.protocol.GroupHealth value) {
+    value.getClass();  // minimal bytecode null check
+    if (dataCase_ == 5 &&
+        data_ != com.hyperpteltd.libbox.protocol.GroupHealth.getDefaultInstance()) {
+      data_ = com.hyperpteltd.libbox.protocol.GroupHealth.newBuilder((com.hyperpteltd.libbox.protocol.GroupHealth) data_)
+          .mergeFrom(value).buildPartial();
+    } else {
+      data_ = value;
+    }
+    dataCase_ = 5;
+  }
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   */
+  private void clearGroupHealth() {
+    if (dataCase_ == 5) {
       dataCase_ = 0;
       data_ = null;
     }
@@ -477,6 +531,54 @@ public  final class Event extends
       return this;
     }
 
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    @java.lang.Override
+    public boolean hasGroupHealth() {
+      return instance.hasGroupHealth();
+    }
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    @java.lang.Override
+    public com.hyperpteltd.libbox.protocol.GroupHealth getGroupHealth() {
+      return instance.getGroupHealth();
+    }
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    public Builder setGroupHealth(com.hyperpteltd.libbox.protocol.GroupHealth value) {
+      copyOnWrite();
+      instance.setGroupHealth(value);
+      return this;
+    }
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    public Builder setGroupHealth(
+        com.hyperpteltd.libbox.protocol.GroupHealth.Builder builderForValue) {
+      copyOnWrite();
+      instance.setGroupHealth(builderForValue.build());
+      return this;
+    }
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    public Builder mergeGroupHealth(com.hyperpteltd.libbox.protocol.GroupHealth value) {
+      copyOnWrite();
+      instance.mergeGroupHealth(value);
+      return this;
+    }
+    /**
+     * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+     */
+    public Builder clearGroupHealth() {
+      copyOnWrite();
+      instance.clearGroupHealth();
+      return this;
+    }
+
     // @@protoc_insertion_point(builder_scope:libbox.control.v1.Event)
   }
   @java.lang.Override
@@ -499,10 +601,11 @@ public  final class Event extends
             "timeUnixMs_",
             com.hyperpteltd.libbox.protocol.Log.class,
             com.hyperpteltd.libbox.protocol.StateChange.class,
+            com.hyperpteltd.libbox.protocol.GroupHealth.class,
           };
           java.lang.String info =
-              "\u0000\u0004\u0001\u0000\u0001\u0004\u0004\u0000\u0000\u0000\u0001\u0003\u0002\u0002" +
-              "\u0003<\u0000\u0004<\u0000";
+              "\u0000\u0005\u0001\u0000\u0001\u0005\u0005\u0000\u0000\u0000\u0001\u0003\u0002\u0002" +
+              "\u0003<\u0000\u0004<\u0000\u0005<\u0000";
           return newMessageInfo(DEFAULT_INSTANCE, info, objects);
       }
       case GET_DEFAULT_INSTANCE: {

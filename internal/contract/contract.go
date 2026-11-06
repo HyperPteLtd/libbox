@@ -212,4 +212,10 @@ type StateChange struct {
 	State string
 	Error *Error
 }
+type GroupHealth struct {
+	Group     string
+	Healthy   []string
+	Unhealthy []string
+	Fallback  string
+}
 type Emit func(kind string, data any)

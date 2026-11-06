@@ -19,3 +19,22 @@ func TestStableMethodNumbersAndWireVector(t *testing.T) {
 		t.Fatalf("wire vector changed: %x %v", data, err)
 	}
 }
+
+func TestStableEventNumbers(t *testing.T) {
+	event := (&Event{}).ProtoReflect().Descriptor().Fields()
+	for name, number := range map[protoreflect.Name]protoreflect.FieldNumber{"sequence": 1, "time_unix_ms": 2, "log": 3, "state": 4, "group_health": 5} {
+		if field := event.ByName(name); field == nil || field.Number() != number {
+			t.Fatalf("event field %s number changed", name)
+		}
+	}
+	health := (&GroupHealth{}).ProtoReflect().Descriptor().Fields()
+	for name, number := range map[protoreflect.Name]protoreflect.FieldNumber{"group": 1, "healthy": 2, "unhealthy": 3, "fallback": 4} {
+		if field := health.ByName(name); field == nil || field.Number() != number {
+			t.Fatalf("group health field %s number changed", name)
+		}
+	}
+	data, err := proto.Marshal(&Event{Sequence: 1, Data: &Event_GroupHealth{GroupHealth: &GroupHealth{Group: "JP", Unhealthy: []string{"a"}, Fallback: "HK"}}})
+	if err != nil || hex.EncodeToString(data) != "08012a0b0a024a501a01612202484b" {
+		t.Fatalf("wire vector changed: %x %v", data, err)
+	}
+}

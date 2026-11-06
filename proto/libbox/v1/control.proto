@@ -141,10 +141,19 @@ message Event {
   oneof data {
     Log log = 3;
     StateChange state = 4;
+    GroupHealth group_health = 5;
   }
 }
 message Log { string level = 1; string message = 2; bool truncated = 3; }
 message StateChange { string state = 1; Error error = 2; }
+// A loadbalance group after a member changed health. Each event is a complete
+// snapshot, so the latest one stays valid when older events were dropped.
+message GroupHealth {
+  string group = 1;
+  repeated string healthy = 2;   // Members that take new connections.
+  repeated string unhealthy = 3; // Failed members, including those in recovery.
+  string fallback = 4;           // Set while new connections use the fallback.
+}
 
 // Reverse calls use the same protobuf-only model. A descriptor is process-local;
 // host callbacks run in the process embedding the core, never in a remote UI.

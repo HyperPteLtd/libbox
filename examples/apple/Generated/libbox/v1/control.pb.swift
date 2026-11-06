@@ -840,11 +840,20 @@ public struct LBXEvent: Sendable {
     set {data = .state(newValue)}
   }
 
+  public var groupHealth: LBXGroupHealth {
+    get {
+      if case .groupHealth(let v)? = data {return v}
+      return LBXGroupHealth()
+    }
+    set {data = .groupHealth(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Data: Equatable, Sendable {
     case log(LBXLog)
     case state(LBXStateChange)
+    case groupHealth(LBXGroupHealth)
 
   }
 
@@ -888,6 +897,29 @@ public struct LBXStateChange: Sendable {
   public init() {}
 
   fileprivate var _error: LBXError? = nil
+}
+
+/// A loadbalance group after a member changed health. Each event is a complete
+/// snapshot, so the latest one stays valid when older events were dropped.
+public struct LBXGroupHealth: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var group: String = String()
+
+  /// Members that take new connections.
+  public var healthy: [String] = []
+
+  /// Failed members, including those in recovery.
+  public var unhealthy: [String] = []
+
+  /// Set while new connections use the fallback.
+  public var fallback: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 /// Reverse calls use the same protobuf-only model. A descriptor is process-local;
@@ -2531,7 +2563,7 @@ extension LBXInterface: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
 
 extension LBXEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Event"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sequence\0\u{3}time_unix_ms\0\u{1}log\0\u{1}state\0\u{c}\u{f}\u{1}")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sequence\0\u{3}time_unix_ms\0\u{1}log\0\u{1}state\0\u{3}group_health\0\u{c}\u{f}\u{1}")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -2567,6 +2599,19 @@ extension LBXEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
           self.data = .state(v)
         }
       }()
+      case 5: try {
+        var v: LBXGroupHealth?
+        var hadOneofValue = false
+        if let current = self.data {
+          hadOneofValue = true
+          if case .groupHealth(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.data = .groupHealth(v)
+        }
+      }()
       default: break
       }
     }
@@ -2591,6 +2636,10 @@ extension LBXEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
     case .state?: try {
       guard case .state(let v)? = self.data else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .groupHealth?: try {
+      guard case .groupHealth(let v)? = self.data else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
@@ -2680,6 +2729,51 @@ extension LBXStateChange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   public static func ==(lhs: LBXStateChange, rhs: LBXStateChange) -> Bool {
     if lhs.state != rhs.state {return false}
     if lhs._error != rhs._error {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension LBXGroupHealth: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupHealth"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}group\0\u{1}healthy\0\u{1}unhealthy\0\u{1}fallback\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.group) }()
+      case 2: try { try decoder.decodeRepeatedStringField(value: &self.healthy) }()
+      case 3: try { try decoder.decodeRepeatedStringField(value: &self.unhealthy) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.fallback) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.group.isEmpty {
+      try visitor.visitSingularStringField(value: self.group, fieldNumber: 1)
+    }
+    if !self.healthy.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.healthy, fieldNumber: 2)
+    }
+    if !self.unhealthy.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.unhealthy, fieldNumber: 3)
+    }
+    if !self.fallback.isEmpty {
+      try visitor.visitSingularStringField(value: self.fallback, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: LBXGroupHealth, rhs: LBXGroupHealth) -> Bool {
+    if lhs.group != rhs.group {return false}
+    if lhs.healthy != rhs.healthy {return false}
+    if lhs.unhealthy != rhs.unhealthy {return false}
+    if lhs.fallback != rhs.fallback {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

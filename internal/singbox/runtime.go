@@ -127,6 +127,9 @@ func build(parent context.Context, config string, options contract.Options, hook
 	ctx, cancel := context.WithCancel(parent)
 	ctx = filemanager.WithDefault(ctx, options.WorkingDirectory, options.TempDirectory, os.Getuid(), os.Getgid())
 	ctx = coreContext(ctx)
+	ctx = loadbalance.ContextWithObserver(ctx, func(health loadbalance.Health) {
+		emit("group_health", contract.GroupHealth{Group: health.Group, Healthy: health.Healthy, Unhealthy: health.Unhealthy, Fallback: health.Fallback})
+	})
 	parsed, err := sjson.UnmarshalExtendedContext[option.Options](ctx, []byte(config))
 	if err != nil {
 		cancel()

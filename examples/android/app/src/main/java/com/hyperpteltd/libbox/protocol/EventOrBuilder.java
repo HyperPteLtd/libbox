@@ -44,5 +44,16 @@ public interface EventOrBuilder extends
    */
   com.hyperpteltd.libbox.protocol.StateChange getState();
 
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   * @return Whether the groupHealth field is set.
+   */
+  boolean hasGroupHealth();
+  /**
+   * <code>.libbox.control.v1.GroupHealth group_health = 5;</code>
+   * @return The groupHealth.
+   */
+  com.hyperpteltd.libbox.protocol.GroupHealth getGroupHealth();
+
   public com.hyperpteltd.libbox.protocol.Event.DataCase getDataCase();
 }

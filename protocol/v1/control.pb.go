@@ -2027,6 +2027,7 @@ type Event struct {
 	//
 	//	*Event_Log
 	//	*Event_State
+	//	*Event_GroupHealth
 	Data          isEvent_Data `protobuf_oneof:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2101,6 +2102,15 @@ func (x *Event) GetState() *StateChange {
 	return nil
 }
 
+func (x *Event) GetGroupHealth() *GroupHealth {
+	if x != nil {
+		if x, ok := x.Data.(*Event_GroupHealth); ok {
+			return x.GroupHealth
+		}
+	}
+	return nil
+}
+
 type isEvent_Data interface {
 	isEvent_Data()
 }
@@ -2113,9 +2123,15 @@ type Event_State struct {
 	State *StateChange `protobuf:"bytes,4,opt,name=state,proto3,oneof"`
 }
 
+type Event_GroupHealth struct {
+	GroupHealth *GroupHealth `protobuf:"bytes,5,opt,name=group_health,json=groupHealth,proto3,oneof"`
+}
+
 func (*Event_Log) isEvent_Data() {}
 
 func (*Event_State) isEvent_Data() {}
+
+func (*Event_GroupHealth) isEvent_Data() {}
 
 type Log struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2229,6 +2245,76 @@ func (x *StateChange) GetError() *Error {
 	return nil
 }
 
+// A loadbalance group after a member changed health. Each event is a complete
+// snapshot, so the latest one stays valid when older events were dropped.
+type GroupHealth struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         string                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	Healthy       []string               `protobuf:"bytes,2,rep,name=healthy,proto3" json:"healthy,omitempty"`     // Members that take new connections.
+	Unhealthy     []string               `protobuf:"bytes,3,rep,name=unhealthy,proto3" json:"unhealthy,omitempty"` // Failed members, including those in recovery.
+	Fallback      string                 `protobuf:"bytes,4,opt,name=fallback,proto3" json:"fallback,omitempty"`   // Set while new connections use the fallback.
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GroupHealth) Reset() {
+	*x = GroupHealth{}
+	mi := &file_libbox_v1_control_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GroupHealth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupHealth) ProtoMessage() {}
+
+func (x *GroupHealth) ProtoReflect() protoreflect.Message {
+	mi := &file_libbox_v1_control_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupHealth.ProtoReflect.Descriptor instead.
+func (*GroupHealth) Descriptor() ([]byte, []int) {
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GroupHealth) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *GroupHealth) GetHealthy() []string {
+	if x != nil {
+		return x.Healthy
+	}
+	return nil
+}
+
+func (x *GroupHealth) GetUnhealthy() []string {
+	if x != nil {
+		return x.Unhealthy
+	}
+	return nil
+}
+
+func (x *GroupHealth) GetFallback() string {
+	if x != nil {
+		return x.Fallback
+	}
+	return ""
+}
+
 // Reverse calls use the same protobuf-only model. A descriptor is process-local;
 // host callbacks run in the process embedding the core, never in a remote UI.
 type HostRequest struct {
@@ -2248,7 +2334,7 @@ type HostRequest struct {
 
 func (x *HostRequest) Reset() {
 	*x = HostRequest{}
-	mi := &file_libbox_v1_control_proto_msgTypes[24]
+	mi := &file_libbox_v1_control_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2260,7 +2346,7 @@ func (x *HostRequest) String() string {
 func (*HostRequest) ProtoMessage() {}
 
 func (x *HostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[24]
+	mi := &file_libbox_v1_control_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2273,7 +2359,7 @@ func (x *HostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HostRequest.ProtoReflect.Descriptor instead.
 func (*HostRequest) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{24}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *HostRequest) GetProtocolVersion() uint32 {
@@ -2370,7 +2456,7 @@ type HostResponse struct {
 
 func (x *HostResponse) Reset() {
 	*x = HostResponse{}
-	mi := &file_libbox_v1_control_proto_msgTypes[25]
+	mi := &file_libbox_v1_control_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2382,7 +2468,7 @@ func (x *HostResponse) String() string {
 func (*HostResponse) ProtoMessage() {}
 
 func (x *HostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[25]
+	mi := &file_libbox_v1_control_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2395,7 +2481,7 @@ func (x *HostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HostResponse.ProtoReflect.Descriptor instead.
 func (*HostResponse) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{25}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *HostResponse) GetProtocolVersion() uint32 {
@@ -2492,7 +2578,7 @@ type Socket struct {
 
 func (x *Socket) Reset() {
 	*x = Socket{}
-	mi := &file_libbox_v1_control_proto_msgTypes[26]
+	mi := &file_libbox_v1_control_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2504,7 +2590,7 @@ func (x *Socket) String() string {
 func (*Socket) ProtoMessage() {}
 
 func (x *Socket) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[26]
+	mi := &file_libbox_v1_control_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2517,7 +2603,7 @@ func (x *Socket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Socket.ProtoReflect.Descriptor instead.
 func (*Socket) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{26}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Socket) GetFd() int32 {
@@ -2536,7 +2622,7 @@ type TunDescriptor struct {
 
 func (x *TunDescriptor) Reset() {
 	*x = TunDescriptor{}
-	mi := &file_libbox_v1_control_proto_msgTypes[27]
+	mi := &file_libbox_v1_control_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2548,7 +2634,7 @@ func (x *TunDescriptor) String() string {
 func (*TunDescriptor) ProtoMessage() {}
 
 func (x *TunDescriptor) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[27]
+	mi := &file_libbox_v1_control_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,7 +2647,7 @@ func (x *TunDescriptor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TunDescriptor.ProtoReflect.Descriptor instead.
 func (*TunDescriptor) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{27}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *TunDescriptor) GetFd() int32 {
@@ -2591,7 +2677,7 @@ type TunOptions struct {
 
 func (x *TunOptions) Reset() {
 	*x = TunOptions{}
-	mi := &file_libbox_v1_control_proto_msgTypes[28]
+	mi := &file_libbox_v1_control_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2603,7 +2689,7 @@ func (x *TunOptions) String() string {
 func (*TunOptions) ProtoMessage() {}
 
 func (x *TunOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[28]
+	mi := &file_libbox_v1_control_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2616,7 +2702,7 @@ func (x *TunOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TunOptions.ProtoReflect.Descriptor instead.
 func (*TunOptions) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{28}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *TunOptions) GetName() string {
@@ -2716,7 +2802,7 @@ type HTTPProxy struct {
 
 func (x *HTTPProxy) Reset() {
 	*x = HTTPProxy{}
-	mi := &file_libbox_v1_control_proto_msgTypes[29]
+	mi := &file_libbox_v1_control_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2728,7 +2814,7 @@ func (x *HTTPProxy) String() string {
 func (*HTTPProxy) ProtoMessage() {}
 
 func (x *HTTPProxy) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[29]
+	mi := &file_libbox_v1_control_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2741,7 +2827,7 @@ func (x *HTTPProxy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HTTPProxy.ProtoReflect.Descriptor instead.
 func (*HTTPProxy) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{29}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *HTTPProxy) GetEnabled() bool {
@@ -2792,7 +2878,7 @@ type ConnectionRequest struct {
 
 func (x *ConnectionRequest) Reset() {
 	*x = ConnectionRequest{}
-	mi := &file_libbox_v1_control_proto_msgTypes[30]
+	mi := &file_libbox_v1_control_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2804,7 +2890,7 @@ func (x *ConnectionRequest) String() string {
 func (*ConnectionRequest) ProtoMessage() {}
 
 func (x *ConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[30]
+	mi := &file_libbox_v1_control_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2817,7 +2903,7 @@ func (x *ConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionRequest.ProtoReflect.Descriptor instead.
 func (*ConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{30}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ConnectionRequest) GetProtocol() int32 {
@@ -2868,7 +2954,7 @@ type ConnectionOwner struct {
 
 func (x *ConnectionOwner) Reset() {
 	*x = ConnectionOwner{}
-	mi := &file_libbox_v1_control_proto_msgTypes[31]
+	mi := &file_libbox_v1_control_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2880,7 +2966,7 @@ func (x *ConnectionOwner) String() string {
 func (*ConnectionOwner) ProtoMessage() {}
 
 func (x *ConnectionOwner) ProtoReflect() protoreflect.Message {
-	mi := &file_libbox_v1_control_proto_msgTypes[31]
+	mi := &file_libbox_v1_control_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2893,7 +2979,7 @@ func (x *ConnectionOwner) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionOwner.ProtoReflect.Descriptor instead.
 func (*ConnectionOwner) Descriptor() ([]byte, []int) {
-	return file_libbox_v1_control_proto_rawDescGZIP(), []int{31}
+	return file_libbox_v1_control_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ConnectionOwner) GetUserId() int32 {
@@ -3104,13 +3190,14 @@ const file_libbox_v1_control_proto_rawDesc = "" +
 	"\ametered\x18\b \x01(\bR\ametered\x12 \n" +
 	"\vconstrained\x18\t \x01(\bR\vconstrained\x12\x1a\n" +
 	"\bloopback\x18\n" +
-	" \x01(\bR\bloopback\"\xb7\x01\n" +
+	" \x01(\bR\bloopback\"\xfc\x01\n" +
 	"\x05Event\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x04R\bsequence\x12 \n" +
 	"\ftime_unix_ms\x18\x02 \x01(\x03R\n" +
 	"timeUnixMs\x12*\n" +
 	"\x03log\x18\x03 \x01(\v2\x16.libbox.control.v1.LogH\x00R\x03log\x126\n" +
-	"\x05state\x18\x04 \x01(\v2\x1e.libbox.control.v1.StateChangeH\x00R\x05stateB\x06\n" +
+	"\x05state\x18\x04 \x01(\v2\x1e.libbox.control.v1.StateChangeH\x00R\x05state\x12C\n" +
+	"\fgroup_health\x18\x05 \x01(\v2\x1e.libbox.control.v1.GroupHealthH\x00R\vgroupHealthB\x06\n" +
 	"\x04dataJ\x04\b\x0f\x10\x10\"S\n" +
 	"\x03Log\x12\x14\n" +
 	"\x05level\x18\x01 \x01(\tR\x05level\x12\x18\n" +
@@ -3118,7 +3205,12 @@ const file_libbox_v1_control_proto_rawDesc = "" +
 	"\ttruncated\x18\x03 \x01(\bR\ttruncated\"S\n" +
 	"\vStateChange\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12.\n" +
-	"\x05error\x18\x02 \x01(\v2\x18.libbox.control.v1.ErrorR\x05error\"\xcd\x02\n" +
+	"\x05error\x18\x02 \x01(\v2\x18.libbox.control.v1.ErrorR\x05error\"w\n" +
+	"\vGroupHealth\x12\x14\n" +
+	"\x05group\x18\x01 \x01(\tR\x05group\x12\x18\n" +
+	"\ahealthy\x18\x02 \x03(\tR\ahealthy\x12\x1c\n" +
+	"\tunhealthy\x18\x03 \x03(\tR\tunhealthy\x12\x1a\n" +
+	"\bfallback\x18\x04 \x01(\tR\bfallback\"\xcd\x02\n" +
 	"\vHostRequest\x12)\n" +
 	"\x10protocol_version\x18\x01 \x01(\rR\x0fprotocolVersion\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x04R\x02id\x12\x1d\n" +
@@ -3195,7 +3287,7 @@ func file_libbox_v1_control_proto_rawDescGZIP() []byte {
 }
 
 var file_libbox_v1_control_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_libbox_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_libbox_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_libbox_v1_control_proto_goTypes = []any{
 	(EngineOptions_NetworkMode)(0),    // 0: libbox.control.v1.EngineOptions.NetworkMode
 	(EngineOptions_MemoryProfile)(0),  // 1: libbox.control.v1.EngineOptions.MemoryProfile
@@ -3225,14 +3317,15 @@ var file_libbox_v1_control_proto_goTypes = []any{
 	(*Event)(nil),                     // 25: libbox.control.v1.Event
 	(*Log)(nil),                       // 26: libbox.control.v1.Log
 	(*StateChange)(nil),               // 27: libbox.control.v1.StateChange
-	(*HostRequest)(nil),               // 28: libbox.control.v1.HostRequest
-	(*HostResponse)(nil),              // 29: libbox.control.v1.HostResponse
-	(*Socket)(nil),                    // 30: libbox.control.v1.Socket
-	(*TunDescriptor)(nil),             // 31: libbox.control.v1.TunDescriptor
-	(*TunOptions)(nil),                // 32: libbox.control.v1.TunOptions
-	(*HTTPProxy)(nil),                 // 33: libbox.control.v1.HTTPProxy
-	(*ConnectionRequest)(nil),         // 34: libbox.control.v1.ConnectionRequest
-	(*ConnectionOwner)(nil),           // 35: libbox.control.v1.ConnectionOwner
+	(*GroupHealth)(nil),               // 28: libbox.control.v1.GroupHealth
+	(*HostRequest)(nil),               // 29: libbox.control.v1.HostRequest
+	(*HostResponse)(nil),              // 30: libbox.control.v1.HostResponse
+	(*Socket)(nil),                    // 31: libbox.control.v1.Socket
+	(*TunDescriptor)(nil),             // 32: libbox.control.v1.TunDescriptor
+	(*TunOptions)(nil),                // 33: libbox.control.v1.TunOptions
+	(*HTTPProxy)(nil),                 // 34: libbox.control.v1.HTTPProxy
+	(*ConnectionRequest)(nil),         // 35: libbox.control.v1.ConnectionRequest
+	(*ConnectionOwner)(nil),           // 36: libbox.control.v1.ConnectionOwner
 }
 var file_libbox_v1_control_proto_depIdxs = []int32{
 	6,  // 0: libbox.control.v1.Request.get_info:type_name -> libbox.control.v1.Empty
@@ -3273,20 +3366,21 @@ var file_libbox_v1_control_proto_depIdxs = []int32{
 	24, // 35: libbox.control.v1.Network.interfaces:type_name -> libbox.control.v1.Interface
 	26, // 36: libbox.control.v1.Event.log:type_name -> libbox.control.v1.Log
 	27, // 37: libbox.control.v1.Event.state:type_name -> libbox.control.v1.StateChange
-	8,  // 38: libbox.control.v1.StateChange.error:type_name -> libbox.control.v1.Error
-	32, // 39: libbox.control.v1.HostRequest.open_tun:type_name -> libbox.control.v1.TunOptions
-	30, // 40: libbox.control.v1.HostRequest.protect_socket:type_name -> libbox.control.v1.Socket
-	34, // 41: libbox.control.v1.HostRequest.find_connection_owner:type_name -> libbox.control.v1.ConnectionRequest
-	8,  // 42: libbox.control.v1.HostResponse.error:type_name -> libbox.control.v1.Error
-	6,  // 43: libbox.control.v1.HostResponse.empty:type_name -> libbox.control.v1.Empty
-	31, // 44: libbox.control.v1.HostResponse.tun:type_name -> libbox.control.v1.TunDescriptor
-	35, // 45: libbox.control.v1.HostResponse.connection_owner:type_name -> libbox.control.v1.ConnectionOwner
-	33, // 46: libbox.control.v1.TunOptions.http_proxy:type_name -> libbox.control.v1.HTTPProxy
-	47, // [47:47] is the sub-list for method output_type
-	47, // [47:47] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	28, // 38: libbox.control.v1.Event.group_health:type_name -> libbox.control.v1.GroupHealth
+	8,  // 39: libbox.control.v1.StateChange.error:type_name -> libbox.control.v1.Error
+	33, // 40: libbox.control.v1.HostRequest.open_tun:type_name -> libbox.control.v1.TunOptions
+	31, // 41: libbox.control.v1.HostRequest.protect_socket:type_name -> libbox.control.v1.Socket
+	35, // 42: libbox.control.v1.HostRequest.find_connection_owner:type_name -> libbox.control.v1.ConnectionRequest
+	8,  // 43: libbox.control.v1.HostResponse.error:type_name -> libbox.control.v1.Error
+	6,  // 44: libbox.control.v1.HostResponse.empty:type_name -> libbox.control.v1.Empty
+	32, // 45: libbox.control.v1.HostResponse.tun:type_name -> libbox.control.v1.TunDescriptor
+	36, // 46: libbox.control.v1.HostResponse.connection_owner:type_name -> libbox.control.v1.ConnectionOwner
+	34, // 47: libbox.control.v1.TunOptions.http_proxy:type_name -> libbox.control.v1.HTTPProxy
+	48, // [48:48] is the sub-list for method output_type
+	48, // [48:48] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_libbox_v1_control_proto_init() }
@@ -3330,13 +3424,14 @@ func file_libbox_v1_control_proto_init() {
 	file_libbox_v1_control_proto_msgTypes[21].OneofWrappers = []any{
 		(*Event_Log)(nil),
 		(*Event_State)(nil),
+		(*Event_GroupHealth)(nil),
 	}
-	file_libbox_v1_control_proto_msgTypes[24].OneofWrappers = []any{
+	file_libbox_v1_control_proto_msgTypes[25].OneofWrappers = []any{
 		(*HostRequest_OpenTun)(nil),
 		(*HostRequest_ProtectSocket)(nil),
 		(*HostRequest_FindConnectionOwner)(nil),
 	}
-	file_libbox_v1_control_proto_msgTypes[25].OneofWrappers = []any{
+	file_libbox_v1_control_proto_msgTypes[26].OneofWrappers = []any{
 		(*HostResponse_Error)(nil),
 		(*HostResponse_Empty)(nil),
 		(*HostResponse_Tun)(nil),
@@ -3348,7 +3443,7 @@ func file_libbox_v1_control_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_libbox_v1_control_proto_rawDesc), len(file_libbox_v1_control_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   32,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

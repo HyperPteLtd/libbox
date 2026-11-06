@@ -106,43 +106,46 @@ namespace Hyper.Libbox.Protocol {
             "ASgFEhEKCWFkZHJlc3NlcxgEIAMoCRITCgtkbnNfc2VydmVycxgFIAMoCRIa",
             "ChJkbnNfc2VhcmNoX2RvbWFpbnMYBiADKAkSDAoEdHlwZRgHIAEoCRIPCgdt",
             "ZXRlcmVkGAggASgIEhMKC2NvbnN0cmFpbmVkGAkgASgIEhAKCGxvb3BiYWNr",
-            "GAogASgIIpUBCgVFdmVudBIQCghzZXF1ZW5jZRgBIAEoBBIUCgx0aW1lX3Vu",
+            "GAogASgIIs0BCgVFdmVudBIQCghzZXF1ZW5jZRgBIAEoBBIUCgx0aW1lX3Vu",
             "aXhfbXMYAiABKAMSJQoDbG9nGAMgASgLMhYubGliYm94LmNvbnRyb2wudjEu",
             "TG9nSAASLwoFc3RhdGUYBCABKAsyHi5saWJib3guY29udHJvbC52MS5TdGF0",
-            "ZUNoYW5nZUgAQgYKBGRhdGFKBAgPEBAiOAoDTG9nEg0KBWxldmVsGAEgASgJ",
-            "Eg8KB21lc3NhZ2UYAiABKAkSEQoJdHJ1bmNhdGVkGAMgASgIIkUKC1N0YXRl",
-            "Q2hhbmdlEg0KBXN0YXRlGAEgASgJEicKBWVycm9yGAIgASgLMhgubGliYm94",
-            "LmNvbnRyb2wudjEuRXJyb3IigAIKC0hvc3RSZXF1ZXN0EhgKEHByb3RvY29s",
-            "X3ZlcnNpb24YASABKA0SCgoCaWQYAiABKAQSEgoKdGltZW91dF9tcxgDIAEo",
-            "DRIxCghvcGVuX3R1bhgKIAEoCzIdLmxpYmJveC5jb250cm9sLnYxLlR1bk9w",
-            "dGlvbnNIABIzCg5wcm90ZWN0X3NvY2tldBgLIAEoCzIZLmxpYmJveC5jb250",
-            "cm9sLnYxLlNvY2tldEgAEkUKFWZpbmRfY29ubmVjdGlvbl9vd25lchgMIAEo",
-            "CzIkLmxpYmJveC5jb250cm9sLnYxLkNvbm5lY3Rpb25SZXF1ZXN0SABCCAoG",
-            "bWV0aG9kIoUCCgxIb3N0UmVzcG9uc2USGAoQcHJvdG9jb2xfdmVyc2lvbhgB",
-            "IAEoDRIKCgJpZBgCIAEoBBIpCgVlcnJvchgDIAEoCzIYLmxpYmJveC5jb250",
-            "cm9sLnYxLkVycm9ySAASKQoFZW1wdHkYBCABKAsyGC5saWJib3guY29udHJv",
-            "bC52MS5FbXB0eUgAEi8KA3R1bhgKIAEoCzIgLmxpYmJveC5jb250cm9sLnYx",
-            "LlR1bkRlc2NyaXB0b3JIABI+ChBjb25uZWN0aW9uX293bmVyGAwgASgLMiIu",
-            "bGliYm94LmNvbnRyb2wudjEuQ29ubmVjdGlvbk93bmVySABCCAoGcmVzdWx0",
-            "IhQKBlNvY2tldBIKCgJmZBgBIAEoBSIbCg1UdW5EZXNjcmlwdG9yEgoKAmZk",
-            "GAEgASgFIpkCCgpUdW5PcHRpb25zEgwKBG5hbWUYASABKAkSCwoDbXR1GAIg",
-            "ASgNEhEKCWFkZHJlc3NlcxgDIAMoCRITCgtkbnNfc2VydmVycxgEIAMoCRIQ",
-            "CghkbnNfbW9kZRgFIAEoCRISCgphdXRvX3JvdXRlGAYgASgIEhQKDHN0cmlj",
-            "dF9yb3V0ZRgHIAEoCBIOCgZyb3V0ZXMYCCADKAkSFgoOZXhjbHVkZV9yb3V0",
-            "ZXMYCSADKAkSGAoQaW5jbHVkZV9wYWNrYWdlcxgKIAMoCRIYChBleGNsdWRl",
-            "X3BhY2thZ2VzGAsgAygJEjAKCmh0dHBfcHJveHkYDCABKAsyHC5saWJib3gu",
-            "Y29udHJvbC52MS5IVFRQUHJveHkiaQoJSFRUUFByb3h5Eg8KB2VuYWJsZWQY",
-            "ASABKAgSDgoGc2VydmVyGAIgASgJEgwKBHBvcnQYAyABKA0SFgoOYnlwYXNz",
-            "X2RvbWFpbnMYBCADKAkSFQoNbWF0Y2hfZG9tYWlucxgFIAMoCSKJAQoRQ29u",
-            "bmVjdGlvblJlcXVlc3QSEAoIcHJvdG9jb2wYASABKAUSFgoOc291cmNlX2Fk",
-            "ZHJlc3MYAiABKAkSEwoLc291cmNlX3BvcnQYAyABKAUSGwoTZGVzdGluYXRp",
-            "b25fYWRkcmVzcxgEIAEoCRIYChBkZXN0aW5hdGlvbl9wb3J0GAUgASgFIncK",
-            "D0Nvbm5lY3Rpb25Pd25lchIPCgd1c2VyX2lkGAEgASgFEhIKCnByb2Nlc3Nf",
-            "aWQYAiABKA0SEQoJdXNlcl9uYW1lGAMgASgJEhUKDXByb2Nlc3NfcGF0aHMY",
-            "BCADKAkSFQoNcGFja2FnZV9uYW1lcxgFIAMoCUJ1Ch9jb20uaHlwZXJwdGVs",
-            "dGQubGliYm94LnByb3RvY29sUAFaMmdpdGh1Yi5jb20vSHlwZXJQdGVMdGQv",
-            "bGliYm94L3Byb3RvY29sL3YxO3Byb3RvY29sqgIVSHlwZXIuTGliYm94LlBy",
-            "b3RvY29sugIDTEJYYgZwcm90bzM="));
+            "ZUNoYW5nZUgAEjYKDGdyb3VwX2hlYWx0aBgFIAEoCzIeLmxpYmJveC5jb250",
+            "cm9sLnYxLkdyb3VwSGVhbHRoSABCBgoEZGF0YUoECA8QECI4CgNMb2cSDQoF",
+            "bGV2ZWwYASABKAkSDwoHbWVzc2FnZRgCIAEoCRIRCgl0cnVuY2F0ZWQYAyAB",
+            "KAgiRQoLU3RhdGVDaGFuZ2USDQoFc3RhdGUYASABKAkSJwoFZXJyb3IYAiAB",
+            "KAsyGC5saWJib3guY29udHJvbC52MS5FcnJvciJSCgtHcm91cEhlYWx0aBIN",
+            "CgVncm91cBgBIAEoCRIPCgdoZWFsdGh5GAIgAygJEhEKCXVuaGVhbHRoeRgD",
+            "IAMoCRIQCghmYWxsYmFjaxgEIAEoCSKAAgoLSG9zdFJlcXVlc3QSGAoQcHJv",
+            "dG9jb2xfdmVyc2lvbhgBIAEoDRIKCgJpZBgCIAEoBBISCgp0aW1lb3V0X21z",
+            "GAMgASgNEjEKCG9wZW5fdHVuGAogASgLMh0ubGliYm94LmNvbnRyb2wudjEu",
+            "VHVuT3B0aW9uc0gAEjMKDnByb3RlY3Rfc29ja2V0GAsgASgLMhkubGliYm94",
+            "LmNvbnRyb2wudjEuU29ja2V0SAASRQoVZmluZF9jb25uZWN0aW9uX293bmVy",
+            "GAwgASgLMiQubGliYm94LmNvbnRyb2wudjEuQ29ubmVjdGlvblJlcXVlc3RI",
+            "AEIICgZtZXRob2QihQIKDEhvc3RSZXNwb25zZRIYChBwcm90b2NvbF92ZXJz",
+            "aW9uGAEgASgNEgoKAmlkGAIgASgEEikKBWVycm9yGAMgASgLMhgubGliYm94",
+            "LmNvbnRyb2wudjEuRXJyb3JIABIpCgVlbXB0eRgEIAEoCzIYLmxpYmJveC5j",
+            "b250cm9sLnYxLkVtcHR5SAASLwoDdHVuGAogASgLMiAubGliYm94LmNvbnRy",
+            "b2wudjEuVHVuRGVzY3JpcHRvckgAEj4KEGNvbm5lY3Rpb25fb3duZXIYDCAB",
+            "KAsyIi5saWJib3guY29udHJvbC52MS5Db25uZWN0aW9uT3duZXJIAEIICgZy",
+            "ZXN1bHQiFAoGU29ja2V0EgoKAmZkGAEgASgFIhsKDVR1bkRlc2NyaXB0b3IS",
+            "CgoCZmQYASABKAUimQIKClR1bk9wdGlvbnMSDAoEbmFtZRgBIAEoCRILCgNt",
+            "dHUYAiABKA0SEQoJYWRkcmVzc2VzGAMgAygJEhMKC2Ruc19zZXJ2ZXJzGAQg",
+            "AygJEhAKCGRuc19tb2RlGAUgASgJEhIKCmF1dG9fcm91dGUYBiABKAgSFAoM",
+            "c3RyaWN0X3JvdXRlGAcgASgIEg4KBnJvdXRlcxgIIAMoCRIWCg5leGNsdWRl",
+            "X3JvdXRlcxgJIAMoCRIYChBpbmNsdWRlX3BhY2thZ2VzGAogAygJEhgKEGV4",
+            "Y2x1ZGVfcGFja2FnZXMYCyADKAkSMAoKaHR0cF9wcm94eRgMIAEoCzIcLmxp",
+            "YmJveC5jb250cm9sLnYxLkhUVFBQcm94eSJpCglIVFRQUHJveHkSDwoHZW5h",
+            "YmxlZBgBIAEoCBIOCgZzZXJ2ZXIYAiABKAkSDAoEcG9ydBgDIAEoDRIWCg5i",
+            "eXBhc3NfZG9tYWlucxgEIAMoCRIVCg1tYXRjaF9kb21haW5zGAUgAygJIokB",
+            "ChFDb25uZWN0aW9uUmVxdWVzdBIQCghwcm90b2NvbBgBIAEoBRIWCg5zb3Vy",
+            "Y2VfYWRkcmVzcxgCIAEoCRITCgtzb3VyY2VfcG9ydBgDIAEoBRIbChNkZXN0",
+            "aW5hdGlvbl9hZGRyZXNzGAQgASgJEhgKEGRlc3RpbmF0aW9uX3BvcnQYBSAB",
+            "KAUidwoPQ29ubmVjdGlvbk93bmVyEg8KB3VzZXJfaWQYASABKAUSEgoKcHJv",
+            "Y2Vzc19pZBgCIAEoDRIRCgl1c2VyX25hbWUYAyABKAkSFQoNcHJvY2Vzc19w",
+            "YXRocxgEIAMoCRIVCg1wYWNrYWdlX25hbWVzGAUgAygJQnUKH2NvbS5oeXBl",
+            "cnB0ZWx0ZC5saWJib3gucHJvdG9jb2xQAVoyZ2l0aHViLmNvbS9IeXBlclB0",
+            "ZUx0ZC9saWJib3gvcHJvdG9jb2wvdjE7cHJvdG9jb2yqAhVIeXBlci5MaWJi",
+            "b3guUHJvdG9jb2y6AgNMQlhiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -167,9 +170,10 @@ namespace Hyper.Libbox.Protocol {
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Delay), global::Hyper.Libbox.Protocol.Delay.Parser, new[]{ "DelayMs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Network), global::Hyper.Libbox.Protocol.Network.Parser, new[]{ "DefaultInterface", "Interfaces", "WifiSsid", "WifiBssid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Interface), global::Hyper.Libbox.Protocol.Interface.Parser, new[]{ "Index", "Name", "Mtu", "Addresses", "DnsServers", "DnsSearchDomains", "Type", "Metered", "Constrained", "Loopback" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Event), global::Hyper.Libbox.Protocol.Event.Parser, new[]{ "Sequence", "TimeUnixMs", "Log", "State" }, new[]{ "Data" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Event), global::Hyper.Libbox.Protocol.Event.Parser, new[]{ "Sequence", "TimeUnixMs", "Log", "State", "GroupHealth" }, new[]{ "Data" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Log), global::Hyper.Libbox.Protocol.Log.Parser, new[]{ "Level", "Message", "Truncated" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.StateChange), global::Hyper.Libbox.Protocol.StateChange.Parser, new[]{ "State", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.GroupHealth), global::Hyper.Libbox.Protocol.GroupHealth.Parser, new[]{ "Group", "Healthy", "Unhealthy", "Fallback" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.HostRequest), global::Hyper.Libbox.Protocol.HostRequest.Parser, new[]{ "ProtocolVersion", "Id", "TimeoutMs", "OpenTun", "ProtectSocket", "FindConnectionOwner" }, new[]{ "Method" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.HostResponse), global::Hyper.Libbox.Protocol.HostResponse.Parser, new[]{ "ProtocolVersion", "Id", "Error", "Empty", "Tun", "ConnectionOwner" }, new[]{ "Result" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Hyper.Libbox.Protocol.Socket), global::Hyper.Libbox.Protocol.Socket.Parser, new[]{ "Fd" }, null, null, null, null),
@@ -7777,6 +7781,9 @@ namespace Hyper.Libbox.Protocol {
         case DataOneofCase.State:
           State = other.State.Clone();
           break;
+        case DataOneofCase.GroupHealth:
+          GroupHealth = other.GroupHealth.Clone();
+          break;
       }
 
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -7836,12 +7843,25 @@ namespace Hyper.Libbox.Protocol {
       }
     }
 
+    /// <summary>Field number for the "group_health" field.</summary>
+    public const int GroupHealthFieldNumber = 5;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Hyper.Libbox.Protocol.GroupHealth GroupHealth {
+      get { return dataCase_ == DataOneofCase.GroupHealth ? (global::Hyper.Libbox.Protocol.GroupHealth) data_ : null; }
+      set {
+        data_ = value;
+        dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.GroupHealth;
+      }
+    }
+
     private object data_;
     /// <summary>Enum of possible cases for the "data" oneof.</summary>
     public enum DataOneofCase {
       None = 0,
       Log = 3,
       State = 4,
+      GroupHealth = 5,
     }
     private DataOneofCase dataCase_ = DataOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7876,6 +7896,7 @@ namespace Hyper.Libbox.Protocol {
       if (TimeUnixMs != other.TimeUnixMs) return false;
       if (!object.Equals(Log, other.Log)) return false;
       if (!object.Equals(State, other.State)) return false;
+      if (!object.Equals(GroupHealth, other.GroupHealth)) return false;
       if (DataCase != other.DataCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -7888,6 +7909,7 @@ namespace Hyper.Libbox.Protocol {
       if (TimeUnixMs != 0L) hash ^= TimeUnixMs.GetHashCode();
       if (dataCase_ == DataOneofCase.Log) hash ^= Log.GetHashCode();
       if (dataCase_ == DataOneofCase.State) hash ^= State.GetHashCode();
+      if (dataCase_ == DataOneofCase.GroupHealth) hash ^= GroupHealth.GetHashCode();
       hash ^= (int) dataCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -7923,6 +7945,10 @@ namespace Hyper.Libbox.Protocol {
         output.WriteRawTag(34);
         output.WriteMessage(State);
       }
+      if (dataCase_ == DataOneofCase.GroupHealth) {
+        output.WriteRawTag(42);
+        output.WriteMessage(GroupHealth);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -7949,6 +7975,10 @@ namespace Hyper.Libbox.Protocol {
         output.WriteRawTag(34);
         output.WriteMessage(State);
       }
+      if (dataCase_ == DataOneofCase.GroupHealth) {
+        output.WriteRawTag(42);
+        output.WriteMessage(GroupHealth);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -7970,6 +8000,9 @@ namespace Hyper.Libbox.Protocol {
       }
       if (dataCase_ == DataOneofCase.State) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(State);
+      }
+      if (dataCase_ == DataOneofCase.GroupHealth) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GroupHealth);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -8001,6 +8034,12 @@ namespace Hyper.Libbox.Protocol {
             State = new global::Hyper.Libbox.Protocol.StateChange();
           }
           State.MergeFrom(other.State);
+          break;
+        case DataOneofCase.GroupHealth:
+          if (GroupHealth == null) {
+            GroupHealth = new global::Hyper.Libbox.Protocol.GroupHealth();
+          }
+          GroupHealth.MergeFrom(other.GroupHealth);
           break;
       }
 
@@ -8049,6 +8088,15 @@ namespace Hyper.Libbox.Protocol {
             State = subBuilder;
             break;
           }
+          case 42: {
+            global::Hyper.Libbox.Protocol.GroupHealth subBuilder = new global::Hyper.Libbox.Protocol.GroupHealth();
+            if (dataCase_ == DataOneofCase.GroupHealth) {
+              subBuilder.MergeFrom(GroupHealth);
+            }
+            input.ReadMessage(subBuilder);
+            GroupHealth = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -8092,6 +8140,15 @@ namespace Hyper.Libbox.Protocol {
             }
             input.ReadMessage(subBuilder);
             State = subBuilder;
+            break;
+          }
+          case 42: {
+            global::Hyper.Libbox.Protocol.GroupHealth subBuilder = new global::Hyper.Libbox.Protocol.GroupHealth();
+            if (dataCase_ == DataOneofCase.GroupHealth) {
+              subBuilder.MergeFrom(GroupHealth);
+            }
+            input.ReadMessage(subBuilder);
+            GroupHealth = subBuilder;
             break;
           }
         }
@@ -8618,6 +8675,306 @@ namespace Hyper.Libbox.Protocol {
   }
 
   /// <summary>
+  /// A loadbalance group after a member changed health. Each event is a complete
+  /// snapshot, so the latest one stays valid when older events were dropped.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class GroupHealth : pb::IMessage<GroupHealth>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<GroupHealth> _parser = new pb::MessageParser<GroupHealth>(() => new GroupHealth());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<GroupHealth> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[24]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GroupHealth() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GroupHealth(GroupHealth other) : this() {
+      group_ = other.group_;
+      healthy_ = other.healthy_.Clone();
+      unhealthy_ = other.unhealthy_.Clone();
+      fallback_ = other.fallback_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public GroupHealth Clone() {
+      return new GroupHealth(this);
+    }
+
+    /// <summary>Field number for the "group" field.</summary>
+    public const int GroupFieldNumber = 1;
+    private string group_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Group {
+      get { return group_; }
+      set {
+        group_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "healthy" field.</summary>
+    public const int HealthyFieldNumber = 2;
+    private static readonly pb::FieldCodec<string> _repeated_healthy_codec
+        = pb::FieldCodec.ForString(18);
+    private readonly pbc::RepeatedField<string> healthy_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Members that take new connections.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> Healthy {
+      get { return healthy_; }
+    }
+
+    /// <summary>Field number for the "unhealthy" field.</summary>
+    public const int UnhealthyFieldNumber = 3;
+    private static readonly pb::FieldCodec<string> _repeated_unhealthy_codec
+        = pb::FieldCodec.ForString(26);
+    private readonly pbc::RepeatedField<string> unhealthy_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Failed members, including those in recovery.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> Unhealthy {
+      get { return unhealthy_; }
+    }
+
+    /// <summary>Field number for the "fallback" field.</summary>
+    public const int FallbackFieldNumber = 4;
+    private string fallback_ = "";
+    /// <summary>
+    /// Set while new connections use the fallback.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Fallback {
+      get { return fallback_; }
+      set {
+        fallback_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as GroupHealth);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(GroupHealth other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Group != other.Group) return false;
+      if(!healthy_.Equals(other.healthy_)) return false;
+      if(!unhealthy_.Equals(other.unhealthy_)) return false;
+      if (Fallback != other.Fallback) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Group.Length != 0) hash ^= Group.GetHashCode();
+      hash ^= healthy_.GetHashCode();
+      hash ^= unhealthy_.GetHashCode();
+      if (Fallback.Length != 0) hash ^= Fallback.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Group.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Group);
+      }
+      healthy_.WriteTo(output, _repeated_healthy_codec);
+      unhealthy_.WriteTo(output, _repeated_unhealthy_codec);
+      if (Fallback.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Fallback);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Group.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Group);
+      }
+      healthy_.WriteTo(ref output, _repeated_healthy_codec);
+      unhealthy_.WriteTo(ref output, _repeated_unhealthy_codec);
+      if (Fallback.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Fallback);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Group.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Group);
+      }
+      size += healthy_.CalculateSize(_repeated_healthy_codec);
+      size += unhealthy_.CalculateSize(_repeated_unhealthy_codec);
+      if (Fallback.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Fallback);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(GroupHealth other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Group.Length != 0) {
+        Group = other.Group;
+      }
+      healthy_.Add(other.healthy_);
+      unhealthy_.Add(other.unhealthy_);
+      if (other.Fallback.Length != 0) {
+        Fallback = other.Fallback;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Group = input.ReadString();
+            break;
+          }
+          case 18: {
+            healthy_.AddEntriesFrom(input, _repeated_healthy_codec);
+            break;
+          }
+          case 26: {
+            unhealthy_.AddEntriesFrom(input, _repeated_unhealthy_codec);
+            break;
+          }
+          case 34: {
+            Fallback = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Group = input.ReadString();
+            break;
+          }
+          case 18: {
+            healthy_.AddEntriesFrom(ref input, _repeated_healthy_codec);
+            break;
+          }
+          case 26: {
+            unhealthy_.AddEntriesFrom(ref input, _repeated_unhealthy_codec);
+            break;
+          }
+          case 34: {
+            Fallback = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// Reverse calls use the same protobuf-only model. A descriptor is process-local;
   /// host callbacks run in the process embedding the core, never in a remote UI.
   /// </summary>
@@ -8636,7 +8993,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9094,7 +9451,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9568,7 +9925,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9766,7 +10123,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9964,7 +10321,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10512,7 +10869,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10836,7 +11193,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11182,7 +11539,7 @@ namespace Hyper.Libbox.Protocol {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Hyper.Libbox.Protocol.ControlReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

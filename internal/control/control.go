@@ -219,6 +219,8 @@ func convertEvent(event *contract.Event) (*pb.Event, error) {
 			change.Error = errorMessage(value.Error)
 		}
 		result.Data = &pb.Event_State{State: change}
+	case contract.GroupHealth:
+		result.Data = &pb.Event_GroupHealth{GroupHealth: &pb.GroupHealth{Group: value.Group, Healthy: value.Healthy, Unhealthy: value.Unhealthy, Fallback: value.Fallback}}
 	default:
 		return nil, contract.Fail("internal_error", "unsupported internal event type")
 	}
