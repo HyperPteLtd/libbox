@@ -17,12 +17,12 @@ import (
 
 	"github.com/HyperPteLtd/libbox/internal/backend"
 	"github.com/HyperPteLtd/libbox/internal/contract"
+	"github.com/HyperPteLtd/libbox/internal/singbox/loadbalance"
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental/clashmode"
-	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/protocol/group"
@@ -56,7 +56,7 @@ func BuildInfo() contract.Info {
 			}
 		}
 	}
-	capabilities := []string{"lifecycle", "reload_rollback", "events", "traffic", "groups", "url_test", "mode", "pause", "host_network", "host_dns", "socket_protection", "connection_owner", "protobuf_control_v1", "protobuf_host_v1", "memory_profile", "memory_pressure"}
+	capabilities := []string{"lifecycle", "reload_rollback", "events", "traffic", "groups", "url_test", "mode", "pause", "host_network", "host_dns", "socket_protection", "connection_owner", "protobuf_control_v1", "protobuf_host_v1", "memory_profile", "memory_pressure", "loadbalance_group"}
 	if lowMemoryBuild {
 		capabilities = append(capabilities, "low_memory_build")
 		if !strings.Contains(tags, "with_low_memory") {
@@ -126,7 +126,7 @@ func (Factory) Build(ctx context.Context, config string, options contract.Option
 func build(parent context.Context, config string, options contract.Options, hooks contract.Hooks, network contract.Network, emit contract.Emit, validation bool) (*runtime, error) {
 	ctx, cancel := context.WithCancel(parent)
 	ctx = filemanager.WithDefault(ctx, options.WorkingDirectory, options.TempDirectory, os.Getuid(), os.Getgid())
-	ctx = include.Context(ctx)
+	ctx = coreContext(ctx)
 	parsed, err := sjson.UnmarshalExtendedContext[option.Options](ctx, []byte(config))
 	if err != nil {
 		cancel()
@@ -275,7 +275,10 @@ func (r *runtime) Groups() []contract.Group {
 		}
 		_, selectable := outbound.(*group.Selector)
 		item := contract.Group{Tag: g.Tag(), Type: g.Type(), Selectable: selectable, Outbounds: []contract.Outbound{}}
-		if selected := g.Selected("tcp"); selected != nil {
+		if balancer, ok := outbound.(*loadbalance.Group); ok {
+			// Its Selected is the site-hashing dialer, not a member.
+			item.Selected = balancer.Current()
+		} else if selected := g.Selected("tcp"); selected != nil {
 			item.Selected = selected.Tag()
 		}
 		for _, tag := range g.All() {
