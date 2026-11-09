@@ -8,6 +8,7 @@ import (
 	"net/netip"
 	"os"
 	goruntime "runtime"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -179,6 +180,11 @@ func TestHostDNSUpdateAndTCPFallback(t *testing.T) {
 	if err = p.update(contract.Network{DefaultInterface: 2, Interfaces: []contract.Interface{{Index: 2, Name: "next", MTU: 1500, DNSServers: []string{"127.0.0.3"}, DNSSearchDomains: []string{"sdk.test"}}}}); err != nil {
 		t.Fatal(err)
 	}
+	interfaces, err := p.NetworkInterfaces()
+	if err != nil || len(interfaces) != 1 || !slices.Equal(interfaces[0].DNSSearchDomains, []string{"sdk.test"}) {
+		t.Fatalf("host search domains not forwarded to the core: %+v %v", interfaces, err)
+	}
+	interfaces[0].DNSSearchDomains[0] = "mutated.test"
 	if _, err = h.Exchange(context.Background(), question); err != nil {
 		t.Fatal(err)
 	}
@@ -214,12 +220,13 @@ func TestReleaseConnectionOwnerMapping(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.UserId != owner.UserID || result.ProcessID != owner.ProcessID || result.UserName != owner.UserName || result.ProcessPath != "/primary" || len(result.AndroidPackageNames) != 1 || result.AndroidPackageNames[0] != "test.package" {
+	if result.UserId != owner.UserID || result.ProcessID != owner.ProcessID || result.UserName != owner.UserName || !slices.Equal(result.ProcessPaths, owner.ProcessPaths) || !slices.Equal(result.PackageNames, owner.PackageNames) {
 		t.Fatalf("incorrect release owner mapping: %+v", result)
 	}
-	result.AndroidPackageNames[0] = "mutated"
-	if owner.PackageNames[0] != "test.package" {
-		t.Fatal("owner package names alias the host result")
+	result.PackageNames[0] = "mutated"
+	result.ProcessPaths[0] = "mutated"
+	if owner.PackageNames[0] != "test.package" || owner.ProcessPaths[0] != "/primary" {
+		t.Fatal("owner details alias the host result")
 	}
 }
 

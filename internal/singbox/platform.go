@@ -91,13 +91,7 @@ func (p *platform) FindConnectionOwner(request *adapter.FindConnectionOwnerReque
 	if err != nil {
 		return nil, err
 	}
-	// v1.14.4 accepts one process path. Keep the protobuf list for protocol
-	// compatibility and use its first entry as the primary path for this core.
-	var processPath string
-	if len(owner.ProcessPaths) > 0 {
-		processPath = owner.ProcessPaths[0]
-	}
-	return &adapter.ConnectionOwner{UserId: owner.UserID, ProcessID: owner.ProcessID, UserName: owner.UserName, ProcessPath: processPath, AndroidPackageNames: append([]string(nil), owner.PackageNames...)}, nil
+	return &adapter.ConnectionOwner{UserId: owner.UserID, ProcessID: owner.ProcessID, UserName: owner.UserName, ProcessPaths: append([]string(nil), owner.ProcessPaths...), PackageNames: append([]string(nil), owner.PackageNames...)}, nil
 }
 
 func interfaceValue(i contract.Interface) adapter.NetworkInterface {
@@ -119,7 +113,7 @@ func interfaceValue(i contract.Interface) adapter.NetworkInterface {
 	case "ethernet":
 		typeID = C.InterfaceTypeEthernet
 	}
-	return adapter.NetworkInterface{Interface: control.Interface{Index: i.Index, Name: i.Name, MTU: i.MTU, Addresses: addresses, Flags: flags}, Type: typeID, DNSServers: append([]string(nil), i.DNSServers...), Expensive: i.Metered, Constrained: i.Constrained}
+	return adapter.NetworkInterface{Interface: control.Interface{Index: i.Index, Name: i.Name, MTU: i.MTU, Addresses: addresses, Flags: flags}, Type: typeID, DNSServers: append([]string(nil), i.DNSServers...), DNSSearchDomains: append([]string(nil), i.DNSSearchDomains...), Expensive: i.Metered, Constrained: i.Constrained}
 }
 func (p *platform) NetworkInterfaces() ([]adapter.NetworkInterface, error) {
 	p.mu.RLock()
@@ -257,5 +251,9 @@ func (*platform) ReadSystemSSHHostKey() ([]byte, error)            { return nil,
 func (*platform) TailscaleHostname() string                        { return "" }
 func (*platform) UsePlatformBridge() bool                          { return false }
 func (*platform) CreateBridge(adapter.BridgeOptions) (adapter.BridgeSession, error) {
+	return nil, unsupported()
+}
+func (*platform) UsePlatformAutoRedirect() bool { return false }
+func (*platform) CreateAutoRedirect(adapter.AutoRedirectOptions) (adapter.AutoRedirectSession, error) {
 	return nil, unsupported()
 }

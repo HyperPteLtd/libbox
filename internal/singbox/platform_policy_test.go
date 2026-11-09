@@ -20,14 +20,14 @@ func TestReleaseTUNStacks(t *testing.T) {
 		parsed := tunConfig(1)
 		parsed.Inbounds[0].Options.(*option.TunInboundOptions).Stack = stack
 		err := preparePlatformOptions(&parsed, contract.Options{NetworkMode: "host"}, contract.Hooks{}, true, "android")
-		allowed := stack == "" || stack == "system" || tun.WithGVisor && (stack == "mixed" || stack == "gvisor")
+		allowed := stack == "" || stack == "go" || stack == "system" || tun.WithGVisor && (stack == "mixed" || stack == "gvisor")
 		if (err == nil) != allowed {
 			t.Fatalf("stack=%s compiled gvisor=%v error=%v", stack, tun.WithGVisor, err)
 		}
 		parsed = tunConfig(1)
 		parsed.Inbounds[0].Options.(*option.TunInboundOptions).Stack = stack
 		err = preparePlatformOptions(&parsed, contract.Options{NetworkMode: "host", UnderNetworkExtension: true, IncludeAllNetworks: true}, contract.Hooks{}, true, "ios")
-		allowed = tun.WithGVisor && (stack == "" || stack == "gvisor")
+		allowed = stack == "" || stack == "go" || tun.WithGVisor && stack == "gvisor"
 		if (err == nil) != allowed {
 			t.Fatalf("include_all_networks stack=%s compiled gvisor=%v error=%v", stack, tun.WithGVisor, err)
 		}

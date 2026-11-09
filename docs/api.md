@@ -1,6 +1,6 @@
 # API
 
-控制协议为 protobuf v1，完整消息定义见 [control.proto](../proto/libbox/v1/control.proto)。`Config.config_json` 按固定的 sing-box v1.14.4 配置格式解释，另外支持 SDK 自带的 [`loadbalance` 出站组](#loadbalance-出站组)。
+控制协议为 protobuf v1，完整消息定义见 [control.proto](../proto/libbox/v1/control.proto)。`Config.config_json` 按固定的 sing-box v1.15.0-alpha.13 配置格式解释，另外支持 SDK 自带的 [`loadbalance` 出站组](#loadbalance-出站组)。
 
 ## 会话与生命周期
 
@@ -97,7 +97,7 @@ func (*MessageSession) Close() error
 | `url` | 健康检查地址，绝对 HTTP(S) URL；默认 `https://www.gstatic.com/generate_204` |
 | `interval` | 健康检查周期，默认 `3m`；不得大于 `idle_timeout` |
 | `idle_timeout` | 组内无新连接超过该时长后暂停周期检查，默认 `30m`；再次有连接时立即补测 |
-| `tolerance` | 毫秒。大于 0 时只在延迟不超过最快健康成员加该值的成员间分配；0（默认）不按延迟筛选 |
+| `tolerance` | 毫秒。TCP/UDP 分别在支持对应网络的健康成员中计算最快延迟，只向不超过最快值加该容差的成员分配；0（默认）不按延迟筛选 |
 | `recovery_checks` | 故障成员连续通过多少轮检查后重新加入，默认 2 |
 | `fallback` | 可选，组内没有健康成员时使用的出站或组，例如另一个国家组 |
 | `interrupt_exist_connections` | 成员被判定故障、或兜底解除时，同时断开应用的现有连接 |
@@ -105,6 +105,8 @@ func (*MessageSession) Close() error
 **分配。** 连接按目标站点做一致性哈希（rendezvous 哈希）：有域名时取可注册域名（eTLD+1，例如 `img.example.co.uk` 取 `example.co.uk`），目标是 IP 但路由已嗅探或解析出域名时使用该域名，否则使用目标 IP。同一站点稳定使用同一成员，不同站点分散到各成员。成员增减只影响少量站点：移除的成员把它的站点交给各站点的下一顺位，新增的成员只接手约 1/n 的站点。UDP 按 `ListenPacket` 或 UDP 拨号时的目标地址分配，不支持该网络的成员不参与。
 
 **健康与故障转移。** 启动后先检查一轮，之后在组有流量时按 `interval` 检查；网络变化后立即重测。拨号失败的成员立即停止分配，同时触发一轮检查。选中成员拨号失败时，按该站点的哈希顺序换下一个健康成员，单次连接最多尝试 3 个出站。重试只发生在向调用方返回连接之前，此时应用数据尚未交给任何出站，不会重复发送；连接建立后的失败不重试。调用方取消的拨号不算成员故障。
+
+成员为嵌套组时，通过该组实际拨号完成健康检查，包括其可用的兜底路径。父组使用本轮实测结果判断健康，不复用子组缓存，也不覆盖子组自己的代表节点延迟。健康检查使用 HTTP(S)，不是独立的 UDP 可达性探测。
 
 **恢复。** 故障成员需连续通过 `recovery_checks` 轮检查（包括拨号失败后立即触发的那一轮）才重新加入，避免站点出口反复切换；任一轮失败重新计数。网络变化后的那一轮只需一次成功。
 
@@ -128,7 +130,7 @@ SDK 同步复制 TUN FD 并管理副本；宿主保持原 FD 有效，直至核�
 
 回调可能并发并来自 Go 线程，宿主应遵守预算，且不能同步重入生命周期操作。回调处理器及其 native context 必须保持有效，直到会话释放返回。
 
-v1.14.4 使用 `process_paths` 的首项作为进程路径，`package_names` 用于应用包名匹配。DNS 搜索域保存在宿主网络快照中，用于本地 DNS 环境。
+`process_paths` 和 `package_names` 完整传入核心，用于进程路径与应用包名匹配。宿主 DNS 地址和搜索域传入核心接口元数据，并通过本地 DNS 传输提供给 `dns_server_address`、`dns_search_domain` 等规则。
 
 ## 事件与错误
 

@@ -27,8 +27,8 @@ func TestCoreUsesExactRelease(t *testing.T) {
 		if requirement.Mod.Path != module {
 			continue
 		}
-		if !regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`).MatchString(requirement.Mod.Version) {
-			t.Fatal("sing-box must use an exact stable release, not a prerelease or commit pseudo-version")
+		if !regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|rc)\.[0-9]+)?$`).MatchString(requirement.Mod.Version) {
+			t.Fatal("sing-box must use an exact release tag, not a commit pseudo-version")
 		}
 		if requirement.Mod.Version != pinnedVersion || BuildInfo().CoreVersion != pinnedVersion {
 			t.Fatal("core version metadata differs from the module pin")

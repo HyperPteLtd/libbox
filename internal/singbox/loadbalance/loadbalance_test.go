@@ -432,12 +432,12 @@ func TestToleranceLimitsEligibleMembers(t *testing.T) {
 	members := []*fakeOutbound{{tag: "jp-1"}, {tag: "jp-2"}, {tag: "jp-3"}}
 	g := newGroup(t, Options{Tolerance: 100}, members, nil, nil)
 	g.apply(map[string]uint16{"jp-1": 50, "jp-2": 400, "jp-3": 120}, false)
-	if v := g.view.Load(); !slices.Equal(v.eligible, []bool{true, false, true}) || v.selected != "jp-1" {
+	if v := g.view.Load(); !slices.Equal(v.eligibleTCP, []bool{true, false, true}) || !slices.Equal(v.eligibleUDP, v.eligibleTCP) || v.selected != "jp-1" {
 		t.Fatalf("unexpected eligibility: %+v", v)
 	}
 	// The slow member is still healthy and takes over when the others fail.
 	g.apply(map[string]uint16{"jp-2": 400}, false)
-	if v := g.view.Load(); !slices.Equal(v.eligible, []bool{false, true, false}) {
+	if v := g.view.Load(); !slices.Equal(v.eligibleTCP, []bool{false, true, false}) || !slices.Equal(v.eligibleUDP, v.eligibleTCP) {
 		t.Fatalf("slow member did not take over: %+v", v)
 	}
 }

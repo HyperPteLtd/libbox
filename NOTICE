@@ -4,7 +4,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 This SDK embeds sing-box and adapts its public Go packages and platform
 integration interfaces. Upstream source: https://github.com/SagerNet/sing-box
-Pinned release: v1.14.4 (https://github.com/SagerNet/sing-box/releases/tag/v1.14.4)
+Pinned prerelease: v1.15.0-alpha.13 (https://github.com/SagerNet/sing-box/releases/tag/v1.15.0-alpha.13)
 
 sing-box copyright notice:
 Copyright (C) 2022 by nekohasekai <contact-sagernet@sekai.icu>

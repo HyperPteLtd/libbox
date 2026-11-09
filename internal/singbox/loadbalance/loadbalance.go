@@ -364,20 +364,28 @@ func (g *Group) open(ctx context.Context, network string, destination M.Socksadd
 // that failed earlier in this dial are no longer preferred.
 func (g *Group) next(ctx context.Context, network string, ranked []*member, tried []bool) (int, bool) {
 	v := g.view.Load()
+	eligible := v.eligibleTCP
+	if network == N.NetworkUDP {
+		eligible = v.eligibleUDP
+	}
 	for _, m := range ranked {
-		if !tried[m.index] && v.eligible[m.index] && common.Contains(m.outbound.Network(), network) {
+		if !tried[m.index] && eligible[m.index] {
 			return m.index, true
 		}
 	}
-	if g.fallback != nil && !tried[len(g.members)] && !visited(ctx, g.Tag()) && !visited(ctx, g.fallbackTag) && common.Contains(g.fallback.Network(), network) {
+	if g.fallback != nil && !tried[len(g.members)] && !visited(ctx, g.Tag()) && !visited(ctx, g.fallbackTag) && supportsNetwork(g.fallback, network) {
 		return len(g.members), true
 	}
 	for _, m := range ranked {
-		if !tried[m.index] && common.Contains(m.outbound.Network(), network) {
+		if !tried[m.index] && supportsNetwork(m.outbound, network) {
 			return m.index, true
 		}
 	}
 	return 0, false
+}
+
+func supportsNetwork(outbound adapter.Outbound, network string) bool {
+	return common.Contains(outbound.Network(), network)
 }
 
 // Groups can name each other as fallback. A dial records each group that

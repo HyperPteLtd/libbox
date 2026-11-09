@@ -32,7 +32,7 @@ import (
 	"github.com/sagernet/sing/service/pause"
 )
 
-const pinnedVersion = "v1.14.4"
+const pinnedVersion = "v1.15.0-alpha.13"
 
 // Set by artifact builds, where debug.ReadBuildInfo may be unavailable after
 // embedding a Go c-archive in a native executable.

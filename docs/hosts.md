@@ -14,13 +14,13 @@ NATIVE 也可用于普通代理配置。Apple 的 TUN 配置必须使用 HOST；
 
 HOST 模式由宿主提供物理网络快照，不接受显式的 `bind_interface`、`inet4_bind_address`、`inet6_bind_address`、`default_interface`、`protect_path`、`netns` 或 `auto_redirect`。
 
-v1.14.4 在默认构建标签下使用 system TUN 栈。mixed/gvisor 需要 `with_gvisor`；Apple `include_all_networks` 必须使用 gvisor。可按需构建：
+v1.15 默认使用新的 Go TCP/IP 栈，建议省略 `stack`。默认栈可用于 Apple `include_all_networks`，不需要 `with_gvisor`。显式 `go` 也可用；兼容保留的 system/mixed 不支持 `include_all_networks`，mixed/gvisor 仍需要 `with_gvisor`。使用后两者时可按需构建：
 
 ```bash
 make apple GO_TAGS=with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor
 ```
 
-构建前需按下文安装对应工具链。默认标签定义在 [Makefile](../Makefile)。
+`stack` 已被上游弃用，计划在 1.17 移除。构建前需按下文安装对应工具链。默认标签定义在 [Makefile](../Makefile)。
 
 ## Windows x64
 

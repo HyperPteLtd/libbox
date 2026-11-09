@@ -44,6 +44,7 @@ type hostDNS struct {
 }
 
 var _ adapter.DNSTransport = (*hostDNS)(nil)
+var _ adapter.DNSTransportWithConfiguration = (*hostDNS)(nil)
 
 func (h *hostDNS) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 	h.preferred.Start(stage)
@@ -64,8 +65,6 @@ func (h *hostDNS) ServerAddresses() []netip.Addr {
 	return result
 }
 func (h *hostDNS) SearchDomains() []string {
-	// v1.14.4 has no search-domain field on adapter.NetworkInterface. Keep the
-	// supplied domains in the SDK snapshot for the local DNS environment.
 	return h.platform.defaultSearchDomains()
 }
 func (h *hostDNS) Environment() []string {

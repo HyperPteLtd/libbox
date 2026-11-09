@@ -6,6 +6,7 @@ import (
 
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/interrupt"
+	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/protocol/group"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service/pause"
@@ -28,16 +29,17 @@ type member struct {
 // view is the immutable routing state that dials read without locking. A new
 // view is published after every change to member state.
 type view struct {
-	eligible []bool
-	fallback bool
-	selected string
-	delay    int
-	health   Health
+	eligibleTCP []bool
+	eligibleUDP []bool
+	fallback    bool
+	selected    string
+	delay       int
+	health      Health
 }
 
 // publish must be called with access held.
 func (g *Group) publish() *view {
-	v := &view{eligible: make([]bool, len(g.members)), delay: -1, health: Health{Group: g.Tag(), Healthy: []string{}, Unhealthy: []string{}}}
+	v := &view{delay: -1, health: Health{Group: g.Tag(), Healthy: []string{}, Unhealthy: []string{}}}
 	for _, m := range g.members {
 		if !m.healthy {
 			v.health.Unhealthy = append(v.health.Unhealthy, m.tag)
@@ -48,9 +50,8 @@ func (g *Group) publish() *view {
 			v.delay, v.selected = int(m.delay), m.tag
 		}
 	}
-	for _, m := range g.members {
-		v.eligible[m.index] = m.healthy && (g.tolerance == 0 || v.delay < 0 || !m.measured || int(m.delay) <= v.delay+g.tolerance)
-	}
+	v.eligibleTCP = g.eligibleMembers(N.NetworkTCP)
+	v.eligibleUDP = g.eligibleMembers(N.NetworkUDP)
 	switch {
 	case len(v.health.Healthy) == 0 && g.fallback != nil:
 		v.fallback, v.selected = true, g.fallbackTag
@@ -62,6 +63,23 @@ func (g *Group) publish() *view {
 	}
 	g.view.Store(v)
 	return v
+}
+
+// Called with access held. Only members that support this network may set its
+// latency threshold; a fast TCP-only proxy cannot disqualify working UDP peers.
+func (g *Group) eligibleMembers(network string) []bool {
+	eligible := make([]bool, len(g.members))
+	minimum := -1
+	for _, m := range g.members {
+		eligible[m.index] = m.healthy && supportsNetwork(m.outbound, network)
+		if eligible[m.index] && m.measured && (minimum < 0 || int(m.delay) < minimum) {
+			minimum = int(m.delay)
+		}
+	}
+	for _, m := range g.members {
+		eligible[m.index] = eligible[m.index] && (g.tolerance == 0 || minimum < 0 || !m.measured || int(m.delay) <= minimum+g.tolerance)
+	}
+	return eligible
 }
 
 // apply records one completed check round. A member that fails a check
@@ -181,13 +199,35 @@ func (g *Group) probe(ctx context.Context, fresh bool) map[string]uint16 {
 	outbounds := make([]adapter.Outbound, len(g.members))
 	for i, m := range g.members {
 		outbounds[i] = m.outbound
+		if _, isGroup := m.outbound.(adapter.OutboundGroup); isGroup {
+			outbounds[i] = probeOutbound{m.outbound}
+		}
 	}
-	results := group.URLTestOutbounds(ctx, g.manager, g.history, g.logger, outbounds, g.link, g.interval, true)
+	// The upstream helper flattens groups and then reads their shared history.
+	// Probe a group through its actual dialer, including its fallback path, and
+	// isolate this round's measurements from each child's representative delay.
+	history := urltest.NewHistoryStorage()
+	defer history.Close()
+	results := group.URLTestOutbounds(ctx, g.manager, history, g.logger, outbounds, g.link, g.interval, true)
 	if ctx.Err() == nil {
+		for _, m := range g.members {
+			if _, isGroup := m.outbound.(adapter.OutboundGroup); isGroup {
+				continue
+			}
+			if delay, ok := results[m.tag]; ok {
+				g.history.StoreURLTestHistory(m.tag, &adapter.URLTestHistory{Time: time.Now(), Delay: delay})
+			} else {
+				g.history.DeleteURLTestHistory(m.tag)
+			}
+		}
 		g.apply(results, fresh)
 	}
 	return results
 }
+
+// Expose only the transport methods, so URLTestOutbounds measures the group
+// instead of recursively inspecting All/Selected and trusting cached history.
+type probeOutbound struct{ adapter.Outbound }
 
 // run checks all members once, then every interval while the group carries
 // traffic, plus whenever a dial fails or the network changes.

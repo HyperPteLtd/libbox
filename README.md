@@ -2,7 +2,7 @@
 
 libbox 是用于 Android、Windows、macOS 和 iOS 的 sing-box 嵌入 SDK，提供配置校验、启停、重载、代理组控制、测速、运行状态和事件读取，并在核心上注册了按站点分配节点的 [`loadbalance` 出站组](docs/api.md#loadbalance-出站组)。
 
-核心固定为 **sing-box v1.14.4**，依赖由 [go.mod](go.mod) 和 [go.sum](go.sum) 锁定。升级时显式选择正式发布版本。
+核心固定为 **sing-box v1.15.0-alpha.13（预发布版）**，依赖由 [go.mod](go.mod) 和 [go.sum](go.sum) 锁定。升级时显式选择发布标签，不跟踪分支或最新提交。
 
 ## 接入方式
 
@@ -16,7 +16,7 @@ Go/gomobile 使用 `MessageSession`，C/.NET 使用动态库中的会话函数�
 结束：stop 或 destroy_engine → 释放消息会话
 ```
 
-`Config.config_json` 使用 sing-box v1.14.4 的原生 JSON 配置。TUN 数据直接通过系统接口传输。
+`Config.config_json` 使用 sing-box v1.15.0-alpha.13 的原生 JSON 配置。TUN 数据直接通过系统接口传输。
 
 | 平台 | SDK 产物 | 宿主示例 | TUN 所有权 |
 |---|---|---|---|
@@ -35,7 +35,7 @@ make native
 
 产物为 `dist/<os>-<arch>/libbox.{dll,dylib,so}` 和 `libbox.h`。Android、Apple 和 Windows 交叉构建的工具链与命令见 [平台接入](docs/hosts.md)。
 
-默认构建标签为 `with_quic,with_wireguard,with_utls,with_clash_api`。Apple 移动端额外启用 `with_low_memory`；使用 mixed/gvisor TUN 栈需添加 `with_gvisor`。
+默认构建标签为 `with_quic,with_wireguard,with_utls,with_clash_api`。Apple 移动端额外启用 `with_low_memory`。TUN 默认使用新的 Go TCP/IP 栈，建议省略 `stack`；兼容使用 mixed/gvisor 时需添加 `with_gvisor`。
 
 ```bash
 make test race vet          # 内部模块、协议测试及静态检查

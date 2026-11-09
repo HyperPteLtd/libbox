@@ -2,16 +2,16 @@
 
 ## 核心版本
 
-当前固定为 sing-box **v1.14.4**。升级时显式选择正式发布的 `vX.Y.Z` 标签，并对齐该发布版的核心依赖集；不独立追踪子模块的最新提交。上游发布版自带的固定 pseudo-version 依赖可以保留。
+当前固定为 sing-box **v1.15.0-alpha.13（预发布版）**。升级时显式选择稳定版或 alpha/beta/rc 发布标签，并对齐该标签的核心依赖集；不独立追踪子模块的最新提交。上游发布标签自带的固定 pseudo-version 依赖可以保留。
 
-更新 [go.mod](../go.mod)、[go.sum](../go.sum)、[内部版本元数据](../internal/singbox/runtime.go)、README 和 NOTICE。适配代码集中在 `internal/singbox`，公开 API 保持独立于上游类型。版本检查会拒绝 sing-box 的预发布/提交伪版本、模块替换及元数据不一致。
+更新 [go.mod](../go.mod)、[go.sum](../go.sum)、[内部版本元数据](../internal/singbox/runtime.go)、README 和 NOTICE。适配代码集中在 `internal/singbox`，公开 API 保持独立于上游类型。版本检查会拒绝 sing-box 的提交伪版本、模块替换及元数据不一致。
 
 升级后核对配置格式、宿主接口和依赖解析结果。Go 的版本选择可能保留既有较高版本，因此只修改 sing-box 一项依赖并不等于对齐发布依赖集。
 
 SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 `internal/singbox/registry.go` 注册到上游出站注册表，其余注册表与 `include.Context` 保持一致。升级时还要核对：
 
 - `include` 各注册表函数和 `box.Context` 的签名；上游是否自行注册了 `loadbalance` 类型（注册表测试会报错）。
-- 路由对组的解析：v1.14.4 通过 `Selected` 找到链末端出站后直接拨号，因此组的 `Selected` 返回按站点哈希的内部出站，展示用 `Current`。
+- 路由对组的解析：当前核心通过 `Selected` 找到链末端出站后直接拨号，因此组的 `Selected` 返回按站点哈希的内部出站，展示用 `Current`。
 - 复用的接口：`group.URLTestOutbounds`、`group.RealTag`、`urltest.HistoryStorage`、`interrupt.Group`、`pause.RegisterTicker`、`adapter.OutboundGroup` / `URLTestGroup` / `Referrer` / `InterfaceUpdateListener` 及 `adapter.ContextFrom` 中的目标元数据。
 
 ## 协议生成与兼容
