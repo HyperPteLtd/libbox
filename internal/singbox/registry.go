@@ -16,3 +16,9 @@ func coreContext(ctx context.Context) context.Context {
 	loadbalance.Register(outbounds)
 	return box.Context(ctx, include.InboundRegistry(), outbounds, include.EndpointRegistry(), include.DNSTransportRegistry(), include.ServiceRegistry(), include.CertificateProviderRegistry())
 }
+
+// CoreContext is coreContext for the command-line build (cmd/sing-box), so
+// configurations run by the CLI accept the same outbound types as the SDK.
+func CoreContext(ctx context.Context) context.Context {
+	return coreContext(ctx)
+}

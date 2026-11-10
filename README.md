@@ -24,6 +24,31 @@ Go/gomobile 使用 `MessageSession`，C/.NET 使用动态库中的会话函数�
 | Windows x64 | DLL + C 头文件 | [.NET](examples/windows) | 核心管理 Wintun |
 | macOS 13+ | XCFramework / 动态库 | [App + System Extension](examples/apple) | NetworkExtension 持有原 FD，SDK 使用副本 |
 | iOS 15+ | XCFramework | [App + Packet Tunnel Extension](examples/apple) | NetworkExtension 持有原 FD，SDK 使用副本 |
+| Linux 路由器（OpenWrt 等） | 命令行 `sing-box`（静态链接） | 见下文 | 核心自行创建 TUN |
+
+## 路由器命令行
+
+`cmd/sing-box` 是固定版本 sing-box 自带的命令行程序，换成 SDK 的注册表，配置里可以使用 `loadbalance` 出站组。`run`、`check`、`format`、`merge`、`version` 的参数和输出与上游一致，可以直接替换路由器上的 `sing-box`（例如 OpenWrt passwall 按 `sing-box version` 的第一行和 `Tags:` 行判断版本与功能）。`version` 另外输出一行 `libbox: <SDK 版本>`。
+
+每个 [Release](https://github.com/HyperPteLtd/libbox/releases) 附带各 CPU 的静态程序 `libbox-<版本>-linux-<目标>.tar.gz` 和 `sha256sums`：
+
+| 目标 | 常见 OpenWrt 架构 |
+|---|---|
+| `amd64` | `x86_64` |
+| `arm64` | `aarch64_cortex-a53`、`aarch64_generic` 等 |
+| `armv7` / `armv6` / `armv5` | `arm_cortex-a7_neon-vfpv4` 等 / `arm_arm1176jzf-s_vfp` / `arm_arm926ej-s` 等 |
+| `mipsle-softfloat` / `mips-softfloat` | `mipsel_24kc` 等 / `mips_24kc` 等 |
+| `386-softfloat`、`riscv64`、`loong64` | `i386_*`、`riscv64_generic`、`loongarch64_generic` |
+
+本地构建（需要 Linux 和 GNU tar，macOS 上可用 Linux 容器），产物在 `dist/cli/`，相同源码得到相同的压缩包：
+
+```bash
+make cli-test
+make cli                         # 全部目标
+make cli CLI_TARGETS="arm64"     # 只构建部分目标
+```
+
+编译标签为 `with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor,badlinkname,tfogo_checklinkname0`，不含需要 cgo 的功能（naive 出站等）。
 
 ## 构建
 

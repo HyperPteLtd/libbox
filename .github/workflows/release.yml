@@ -1,0 +1,202 @@
+name: Release
+# Tag v<sdkVersion> (internal/singbox/runtime.go) to publish a GitHub Release with:
+#   libbox-<ver>-linux-<target>.tar.gz   sing-box-compatible CLI for routers (cmd/sing-box)
+#   libbox-<ver>-<os>-<arch>-sdk.*       C shared library + libbox.h
+#   libbox-<ver>-android.aar, libbox-<ver>-apple.xcframework.zip
+#   sha256sums
+# Run it by hand (workflow_dispatch) to build every artifact without publishing.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      core: ${{ steps.version.outputs.core }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: |
+          version="$(sed -n 's/^const sdkVersion = "\([^"]*\)"$/\1/p' internal/singbox/runtime.go)"
+          core="$(sed -n 's/^const pinnedVersion = "v\([^"]*\)"$/\1/p' internal/singbox/runtime.go)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "core=$core" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match sdkVersion $version in internal/singbox/runtime.go"
+            exit 1
+          fi
+
+  cli:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: make cli-test
+      - run: make cli
+      - name: Smoke test
+        env:
+          CORE: ${{ needs.version.outputs.core }}
+        run: |
+          dir="$(mktemp -d)"
+          tar -xzf dist/cli/libbox-*-linux-amd64.tar.gz -C "$dir"
+          bin="$(echo "$dir"/*/sing-box)"
+          "$bin" version
+          "$bin" version | head -1 | grep -qx "sing-box version $CORE"
+          echo '{"outbounds":[{"type":"direct","tag":"a"},{"type":"direct","tag":"b"},{"type":"loadbalance","tag":"g","outbounds":["a","b"]}],"route":{"final":"g"}}' > "$dir/config.json"
+          "$bin" check -c "$dir/config.json"
+          for f in dist/cli/*.tar.gz; do
+            tar -xzOf "$f" --wildcards '*/sing-box' | file - | grep -q 'statically linked' || { echo "::error::$f is not statically linked"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cli
+          path: dist/cli/*.tar.gz
+          if-no-files-found: error
+
+  native:
+    needs: version
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-amd64
+          - os: ubuntu-24.04-arm
+            platform: linux-arm64
+          - os: macos-latest
+            platform: darwin-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: make native
+      - run: |
+          name="libbox-${{ needs.version.outputs.version }}-${{ matrix.platform }}-sdk"
+          mkdir -p "release/$name"
+          cp dist/${{ matrix.platform }}/libbox.* LICENSE NOTICE "release/$name/"
+          tar -C release -czf "release/$name.tar.gz" "$name"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: native-${{ matrix.platform }}
+          path: release/*.tar.gz
+          if-no-files-found: error
+
+  windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          path-type: inherit
+          install: mingw-w64-ucrt-x86_64-gcc zip
+      - shell: msys2 {0}
+        run: |
+          export CC=gcc
+          bash scripts/build-windows.sh
+          name="libbox-${{ needs.version.outputs.version }}-windows-amd64-sdk"
+          mkdir -p "release/$name"
+          cp dist/windows-amd64/libbox.* LICENSE NOTICE "release/$name/"
+          (cd release && zip -qr "$name.zip" "$name")
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: release/*.zip
+          if-no-files-found: error
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: make mobile-tools
+      - run: |
+          export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"
+          make android
+          mkdir -p release
+          cp dist/mobile/libbox.aar "release/libbox-${{ needs.version.outputs.version }}-android.aar"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: release/*.aar
+          if-no-files-found: error
+
+  apple:
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: make mobile-tools
+      - run: |
+          make apple
+          mkdir -p release
+          ditto -c -k --keepParent dist/mobile/Libbox.xcframework "release/libbox-${{ needs.version.outputs.version }}-apple.xcframework.zip"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apple
+          path: release/*.zip
+          if-no-files-found: error
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: [version, cli, native, windows, android, apple]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: release
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cd release
+          sha256sum * > sha256sums
+          cat sha256sums
+      - name: Notes
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          CORE: ${{ needs.version.outputs.core }}
+        run: |
+          {
+            echo "libbox $VERSION, sing-box core $CORE (with the loadbalance outbound group)."
+            echo
+            echo "- \`libbox-$VERSION-linux-<target>.tar.gz\`: static \`sing-box\` CLI for Linux routers (OpenWrt), drop-in compatible with upstream \`run\` / \`check\` / \`format\` / \`merge\` / \`version\`"
+            echo "- \`*-sdk.tar.gz\` / \`*-sdk.zip\`: C shared library and \`libbox.h\`"
+            echo "- \`*-android.aar\`, \`*-apple.xcframework.zip\`: mobile SDKs"
+            echo
+            echo "Verify downloads with \`sha256sum -c sha256sums --ignore-missing\`. Linux CLI archives are reproducible from the tagged source with \`make cli\`."
+          } > notes.md
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            release/*
+          body_path: notes.md
+          prerelease: ${{ contains(needs.version.outputs.version, '-') }}

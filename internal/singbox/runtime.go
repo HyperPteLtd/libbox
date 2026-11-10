@@ -34,6 +34,10 @@ import (
 
 const pinnedVersion = "v1.15.0-alpha.13"
 
+// SDK release version. Release tags must be "v" + sdkVersion
+// (checked by .github/workflows/release.yml); build scripts read it from here.
+const sdkVersion = "0.1.0"
+
 // Set by artifact builds, where debug.ReadBuildInfo may be unavailable after
 // embedding a Go c-archive in a native executable.
 var buildTags string
@@ -72,7 +76,7 @@ func BuildInfo() contract.Info {
 	if goRuntime.GOOS == "darwin" || goRuntime.GOOS == "ios" {
 		capabilities = append(capabilities, "apple_raw_tun_fd")
 	}
-	return contract.Info{APIVersion: contract.APIVersion, SDKVersion: "0.1.0", CoreVersion: version, BuildTags: tags, OS: goRuntime.GOOS, Architecture: goRuntime.GOARCH, Capabilities: capabilities}
+	return contract.Info{APIVersion: contract.APIVersion, SDKVersion: sdkVersion, CoreVersion: version, BuildTags: tags, OS: goRuntime.GOOS, Architecture: goRuntime.GOARCH, Capabilities: capabilities}
 }
 
 type Factory struct{}

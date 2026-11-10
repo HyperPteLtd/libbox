@@ -10,6 +10,12 @@ sing-box copyright notice:
 Copyright (C) 2022 by nekohasekai <contact-sagernet@sekai.icu>
 Licensed under GNU GPL version 3 or, at your option, any later version.
 
+cmd/sing-box is the command-line program of the same sing-box release
+(cmd/sing-box at v1.15.0-alpha.13), copied with these changes only: it runs
+with the SDK registries (internal/singbox.CoreContext, adding the loadbalance
+outbound group), takes its version from the module pin, and prints a
+"libbox:" line in `version`. See cmd/sing-box/libbox.go.
+
 The architecture was informed by https://github.com/Herta-Network/libclash .
 No runtime dependency on libclash or sing-box/experimental/libbox is used.
 

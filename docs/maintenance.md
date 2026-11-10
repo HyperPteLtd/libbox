@@ -6,6 +6,8 @@
 
 更新 [go.mod](../go.mod)、[go.sum](../go.sum)、[内部版本元数据](../internal/singbox/runtime.go)、README 和 NOTICE。适配代码集中在 `internal/singbox`，公开 API 保持独立于上游类型。版本检查会拒绝 sing-box 的提交伪版本、模块替换及元数据不一致。
 
+`cmd/sing-box` 是同一发布标签的上游命令行（`cmd/sing-box`）。升级时从新标签重新拷贝同名文件，再按 [libbox.go](../cmd/sing-box/libbox.go) 开头列出的改动重新应用；`github.com/spf13/cobra` 的版本与该标签的 go.mod 保持一致。
+
 升级后核对配置格式、宿主接口和依赖解析结果。Go 的版本选择可能保留既有较高版本，因此只修改 sing-box 一项依赖并不等于对齐发布依赖集。
 
 SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 `internal/singbox/registry.go` 注册到上游出站注册表，其余注册表与 `include.Context` 保持一致。升级时还要核对：
@@ -13,6 +15,14 @@ SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 
 - `include` 各注册表函数和 `box.Context` 的签名；上游是否自行注册了 `loadbalance` 类型（注册表测试会报错）。
 - 路由对组的解析：当前核心通过 `Selected` 找到链末端出站后直接拨号，因此组的 `Selected` 返回按站点哈希的内部出站，展示用 `Current`。
 - 复用的接口：`group.URLTestOutbounds`、`group.RealTag`、`urltest.HistoryStorage`、`interrupt.Group`、`pause.RegisterTicker`、`adapter.OutboundGroup` / `URLTestGroup` / `Referrer` / `InterfaceUpdateListener` 及 `adapter.ContextFrom` 中的目标元数据。
+
+## 发布
+
+1. 修改 [runtime.go](../internal/singbox/runtime.go) 的 `sdkVersion`。
+2. 推送标签 `v<sdkVersion>`，例如 `git tag v0.1.0 && git push origin v0.1.0`。标签与 `sdkVersion` 不一致时 [release.yml](../.github/workflows/release.yml) 直接失败。
+3. 工作流构建路由器命令行（全部 CPU，含冒烟测试和静态链接检查）、各平台 C 动态库、Android AAR、Apple XCFramework，汇总 `sha256sums` 后创建 GitHub Release；版本号含 `-` 时标为预发布。
+
+在 Actions 页面手动运行 Release 工作流只构建、不发布，可在打标签前检查各平台是否能编译。
 
 ## 协议生成与兼容
 
@@ -32,6 +42,7 @@ python3 scripts/generate-protocol.py --swift --check
 
 ```bash
 make test race vet protocol-check
+make cli-test cli            # 路由器命令行（Linux）
 make android-host-tests    # JDK 17
 make windows-host-tests    # .NET 8+
 make apple-host-tests      # macOS + Swift

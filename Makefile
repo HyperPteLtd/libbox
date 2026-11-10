@@ -1,6 +1,8 @@
 GO_TAGS ?= with_quic,with_wireguard,with_utls,with_clash_api
+# Linux CLI for routers (cmd/sing-box): sing-box release tags plus gvisor
+CLI_TAGS ?= with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor,badlinkname,tfogo_checklinkname0
 
-.PHONY: test race vet native windows mobile-tools android apple apple-host-tests android-host-tests windows-host-tests apple-example protocol-check clean
+.PHONY: test race vet native cli cli-test windows mobile-tools android apple apple-host-tests android-host-tests windows-host-tests apple-example protocol-check clean
 test:
 	go test -mod=readonly -tags '$(GO_TAGS)' ./...
 race:
@@ -9,6 +11,10 @@ vet:
 	go vet -mod=readonly -tags '$(GO_TAGS)' ./...
 native:
 	GO_TAGS='$(GO_TAGS)' bash scripts/build-cshared.sh
+cli:
+	GO_TAGS='$(CLI_TAGS)' bash scripts/build-linux-cli.sh $(CLI_TARGETS)
+cli-test:
+	CGO_ENABLED=0 go test -mod=readonly -tags '$(CLI_TAGS)' -ldflags=-checklinkname=0 ./cmd/sing-box/
 windows:
 	GO_TAGS='$(GO_TAGS)' bash scripts/build-windows.sh
 protocol-check:
