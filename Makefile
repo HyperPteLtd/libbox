@@ -1,6 +1,7 @@
 GO_TAGS ?= with_quic,with_wireguard,with_utls,with_clash_api
-# Linux CLI for routers (cmd/sing-box): sing-box release tags plus gvisor
-CLI_TAGS ?= with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor,badlinkname,tfogo_checklinkname0
+# Linux CLI for routers (cmd/sing-box): sing-box release tags without gvisor
+# (TUN uses the default go or the system stack; WireGuard does not need it)
+CLI_TAGS ?= with_quic,with_wireguard,with_utls,with_clash_api,badlinkname,tfogo_checklinkname0
 
 .PHONY: test race vet native cli cli-test windows mobile-tools android apple apple-host-tests android-host-tests windows-host-tests apple-example protocol-check clean
 test:

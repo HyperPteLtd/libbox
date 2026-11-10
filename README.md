@@ -48,7 +48,7 @@ make cli                         # 全部目标
 make cli CLI_TARGETS="arm64"     # 只构建部分目标
 ```
 
-编译标签为 `with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor,badlinkname,tfogo_checklinkname0`，不含需要 cgo 的功能（naive 出站等）。
+编译标签为 `with_quic,with_wireguard,with_utls,with_clash_api,badlinkname,tfogo_checklinkname0`，不含需要 cgo 的功能（naive 出站等），也不含 gvisor：路由器的 TUN 用默认的 Go 栈或 system 栈，WireGuard 也不需要它，去掉后 arm64 程序小约 3.9 MB。需要 mixed / gvisor 栈时用 `make cli CLI_TAGS=...,with_gvisor,...` 自行构建。
 
 ## 构建
 
