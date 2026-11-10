@@ -36,7 +36,7 @@ const pinnedVersion = "v1.15.0-alpha.13"
 
 // SDK release version. Release tags must be "v" + sdkVersion
 // (checked by .github/workflows/release.yml); build scripts read it from here.
-const sdkVersion = "0.1.0"
+const sdkVersion = "0.1.1"
 
 // Set by artifact builds, where debug.ReadBuildInfo may be unavailable after
 // embedding a Go c-archive in a native executable.
