@@ -60,13 +60,13 @@ make native
 
 产物为 `dist/<os>-<arch>/libbox.{dll,dylib,so}` 和 `libbox.h`。Android、Apple 和 Windows 交叉构建的工具链与命令见 [平台接入](docs/hosts.md)。
 
-默认标签统一由 [build-tags.sh](scripts/build-tags.sh) 提供，并与固定 sing-box 版本的发布功能集校验：
+默认标签统一由 [build-tags.sh](scripts/build-tags.sh) 提供，并与固定 sing-box 版本的发布功能集校验（移动端精简集校验其中每个标签仍是上游发布的标签）：
 
 | 产物 | 默认功能与 Naive 运行依赖 |
 |---|---|
 | Linux CLI | 上游非 Naive 功能集，保持静态链接 |
 | Linux / Windows SDK | 完整功能集及 Naive，使用 `with_purego`；分发包同时提供匹配的 `libcronet.so` / `libcronet.dll` |
-| Android / Apple SDK | 完整功能集及 Naive，Cronet 静态链接；Apple 移动端额外启用 `with_low_memory` |
+| Android / Apple SDK | HyperVPN 移动端精简集：Naive、QUIC、uTLS（REALITY），Cronet 静态链接；Apple 移动端额外启用 `with_low_memory`。不含 Clash API（模式与选择走 protobuf 控制）及 DHCP、WireGuard、ACME、Tailscale、CCM、OCM、Cloudflared、USB/IP、OpenVPN、OpenConnect |
 
 TUN 默认使用新的 Go TCP/IP 栈，建议省略 `stack`；mixed/gvisor TUN 栈仍需额外添加 `with_gvisor`。`GO_TAGS`（SDK）和 `CLI_TAGS`（CLI）可覆盖默认功能集。各功能仍受上游平台与系统权限限制。
 

@@ -10,7 +10,7 @@
 
 升级后核对配置格式、宿主接口和依赖解析结果。Go 的版本选择可能保留既有较高版本，因此只修改 sing-box 一项依赖并不等于对齐发布依赖集。
 
-默认编译功能集统一维护在 [build-tags.sh](../scripts/build-tags.sh)。`make tags-check` 对照固定核心的 `DEFAULT_BUILD_TAGS`、`DEFAULT_BUILD_TAGS_OTHERS` 和 `DEFAULT_BUILD_TAGS_WINDOWS` 检查遗漏；Linux SDK 额外使用 `with_purego`。SDK 支持 Naive，静态路由器 CLI 排除 Naive；mixed/gvisor TUN 栈均由调用方按需启用。
+默认编译功能集统一维护在 [build-tags.sh](../scripts/build-tags.sh)。`make tags-check` 对照固定核心的 `DEFAULT_BUILD_TAGS`、`DEFAULT_BUILD_TAGS_OTHERS` 和 `DEFAULT_BUILD_TAGS_WINDOWS` 检查遗漏；Linux SDK 额外使用 `with_purego`。Android 与 Apple SDK 是 HyperVPN 移动端精简集（`check-build-tags.py` 中的 `MOBILE`），只校验每个标签仍在上游发布集中；增删时同步 build-tags.sh、该清单与 README。SDK 支持 Naive，静态路由器 CLI 排除 Naive；mixed/gvisor TUN 栈均由调用方按需启用。
 
 SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 `internal/singbox/registry.go` 注册到上游出站注册表，其余注册表与 `include.Context` 保持一致。升级时还要核对：
 

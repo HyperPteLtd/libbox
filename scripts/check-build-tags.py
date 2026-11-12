@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Verify default feature profiles against the pinned sing-box release lists."""
+"""Verify default feature profiles against the pinned sing-box release lists.
+
+The mobile SDKs use HyperVPN's subset, which must still name only upstream release tags.
+"""
 import argparse
 import json
 import os
@@ -7,6 +10,8 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+# HyperVPN's mobile subset: naive, the QUIC and uTLS/REALITY outbounds, and the linkname pair.
+MOBILE = {"with_quic", "with_utls", "with_naive_outbound", "badlinkname", "tfogo_checklinkname0"}
 
 
 def tags(value):
@@ -31,7 +36,9 @@ def main():
     standard = tags((release / "DEFAULT_BUILD_TAGS").read_text())
     portable = tags((release / "DEFAULT_BUILD_TAGS_OTHERS").read_text())
     windows = tags((release / "DEFAULT_BUILD_TAGS_WINDOWS").read_text())
-    expected = {"cli": portable, "android": standard, "apple": standard,
+    if not MOBILE <= standard:
+        raise RuntimeError(f"mobile profile names tags upstream no longer ships: {MOBILE - standard}")
+    expected = {"cli": portable, "android": MOBILE, "apple": MOBILE,
                 "darwin": standard, "linux": standard | {"with_purego"}, "windows": windows}
     for profile, want in expected.items():
         actual = tags(subprocess.check_output(
@@ -44,7 +51,8 @@ def main():
                 ["bash", ROOT / "scripts/build-tags.sh", "native"], cwd=ROOT, env=environment, text=True))
             if native != actual:
                 raise RuntimeError(f"native profile differs on {profile}")
-        print(f"{profile}: {len(actual)} tags match the release feature set")
+        source = "HyperVPN mobile" if want is MOBILE else "release"
+        print(f"{profile}: {len(actual)} tags match the {source} feature set")
 
 
 if __name__ == "__main__":
