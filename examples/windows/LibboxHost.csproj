@@ -10,6 +10,8 @@
     <Compile Remove="Tests/**/*.cs" />
     <PackageReference Include="Google.Protobuf" Version="3.33.4" />
     <None Include="../../dist/windows-amd64/libbox.dll" Link="libbox.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../dist/windows-amd64/libbox.dll')" />
+    <None Include="../../dist/windows-amd64/libcronet.dll" Link="libcronet.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../dist/windows-amd64/libcronet.dll')" />
+    <None Include="../../dist/windows-amd64/cronet-LICENSE" Link="cronet-LICENSE" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../dist/windows-amd64/cronet-LICENSE')" />
     <None Include="tun.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -22,7 +22,7 @@ if ! mkdir "$build_dir"; then
 fi
 trap 'rm -rf "$build_dir"' EXIT
 cd "$build_dir"
-tags="${GO_TAGS-with_quic,with_wireguard,with_utls,with_clash_api}"
+tags="${GO_TAGS-$(bash "$repo_dir/scripts/build-tags.sh" "$target")}"
 link_flags="-s -w -checklinkname=0 -X github.com/HyperPteLtd/libbox/internal/singbox.buildTags=$tags"
 case "$target" in
   android)

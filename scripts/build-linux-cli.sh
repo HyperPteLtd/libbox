@@ -30,10 +30,9 @@ version="$(sed -n 's/^const sdkVersion = "\([^"]*\)"$/\1/p' internal/singbox/run
 core="$(sed -n 's/^const pinnedVersion = "v\([^"]*\)"$/\1/p' internal/singbox/runtime.go)"
 [[ -n "$version" && -n "$core" ]] || { echo 'cannot read sdkVersion / pinnedVersion from internal/singbox/runtime.go' >&2; exit 1; }
 revision="${LIBBOX_REVISION:-$(git rev-parse HEAD 2>/dev/null || true)}"
-# sing-box release tags without gvisor: routers use the default go or the system
-# TUN stack and userspace WireGuard does not need it (about 4 MB smaller on arm64).
-# No cgo-only features.
-tags="${GO_TAGS-with_quic,with_wireguard,with_utls,with_clash_api,badlinkname,tfogo_checklinkname0}"
+# The upstream non-Naive feature set, with no gVisor TUN stack. Router archives
+# stay self-contained and static; Naive's native runtime belongs to SDK profiles.
+tags="${GO_TAGS-$(bash "$repo_dir/scripts/build-tags.sh" cli)}"
 # Archive timestamps: the commit time when known, so identical sources give identical archives
 mtime="${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct 2>/dev/null || echo 0)}"
 

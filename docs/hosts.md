@@ -17,10 +17,23 @@ HOST 模式由宿主提供物理网络快照，不接受显式的 `bind_interfac
 v1.15 默认使用新的 Go TCP/IP 栈，建议省略 `stack`。默认栈可用于 Apple `include_all_networks`，不需要 `with_gvisor`。显式 `go` 也可用；兼容保留的 system/mixed 不支持 `include_all_networks`，mixed/gvisor 仍需要 `with_gvisor`。使用后两者时可按需构建：
 
 ```bash
-make apple GO_TAGS=with_quic,with_wireguard,with_utls,with_clash_api,with_gvisor
+make apple GO_TAGS="$(bash scripts/build-tags.sh apple),with_gvisor"
 ```
 
-`stack` 已被上游弃用，计划在 1.17 移除。构建前需按下文安装对应工具链。默认标签定义在 [Makefile](../Makefile)。
+`stack` 已被上游弃用，计划在 1.17 移除。构建前需按下文安装对应工具链。默认功能集定义在 [build-tags.sh](../scripts/build-tags.sh)。
+
+## Naive 运行依赖
+
+SDK 默认启用 `with_naive_outbound`。Android 和 Apple 将固定版本的 Cronet 静态链接到 SDK；Apple 宿主所需的系统框架已列在示例 XcodeGen 配置中。
+
+Linux 和 Windows SDK 使用 `with_purego` 动态加载 Cronet，以避免 Linux 下额外安装 Chromium 静态链接工具链。原生构建会从 go.mod 锁定的模块复制匹配的运行库及许可证到 SDK 产物目录，需 Python 3。分发时保留这些文件：
+
+| 平台 | 运行库 | 部署位置 |
+|---|---|---|
+| Windows | `libcronet.dll` | 宿主可执行文件目录，或受信任的 PATH 目录 |
+| Linux | `libcronet.so` | 宿主可执行文件目录，或 LD_LIBRARY_PATH 指定的目录 |
+
+仅把 Cronet 放在一个任意的 SDK 加载目录中不一定能被找到；例如 Python ctypes 加载 SDK 时，宿主可执行文件是 Python。应在加载 SDK 前配置上述搜索路径。Windows 示例会把 `libcronet.dll` 复制到应用输出目录。Linux 默认依赖为 glibc 版本；musl 构建需使用匹配工具链，并在完整标签集上追加 `with_musl`。
 
 ## Windows x64
 

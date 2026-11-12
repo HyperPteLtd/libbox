@@ -24,6 +24,13 @@ targetTemplates:
       - sdk: Network.framework
       - sdk: Security.framework
       - sdk: SystemConfiguration.framework
+      - sdk: CoreFoundation.framework
+      - sdk: CoreGraphics.framework
+      - sdk: CoreText.framework
+      - sdk: CFNetwork.framework
+      - sdk: UniformTypeIdentifiers.framework
+      - sdk: CryptoTokenKit.framework
+      - sdk: LocalAuthentication.framework
       - sdk: libresolv.tbd
     settings:
       base:
@@ -56,6 +63,8 @@ targets:
     templates: [SharedPacketTunnel]
     dependencies:
       - sdk: UIKit.framework
+      - sdk: MobileCoreServices.framework
+      - sdk: CoreTelephony.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hyperpteltd.libbox.example.tunnel
@@ -86,6 +95,15 @@ targets:
     productName: com.hyperpteltd.libbox.example.macos.tunnel
     platform: macOS
     templates: [SharedPacketTunnel]
+    dependencies:
+      - sdk: ApplicationServices.framework
+      - sdk: AppKit.framework
+      - sdk: IOKit.framework
+      - sdk: OpenDirectory.framework
+      - sdk: CoreServices.framework
+      - sdk: libbsm.tbd
+      - sdk: libpmenergy.tbd
+      - sdk: libpmsample.tbd
     sources:
       - path: MacExtension
         excludes: [Info.plist, Tunnel.entitlements]

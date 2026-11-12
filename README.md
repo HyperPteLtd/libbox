@@ -48,7 +48,7 @@ make cli                         # 全部目标
 make cli CLI_TARGETS="arm64"     # 只构建部分目标
 ```
 
-编译标签为 `with_quic,with_wireguard,with_utls,with_clash_api,badlinkname,tfogo_checklinkname0`，不含需要 cgo 的功能（naive 出站等），也不含 gvisor：路由器的 TUN 用默认的 Go 栈或 system 栈，WireGuard 也不需要它，去掉后 arm64 程序小约 3.9 MB。需要 mixed / gvisor 栈时用 `make cli CLI_TAGS=...,with_gvisor,...` 自行构建。
+CLI 默认使用上游同版本的非 Naive 功能集，包含 QUIC、DHCP、WireGuard、uTLS、ACME、Clash API、Tailscale/Tailcat、CCM、OCM、Cloudflared、USB/IP、OpenVPN 和 OpenConnect。路由器压缩包保持静态、独立运行；不启用 Naive 或 mixed/gvisor TUN 栈。需要后两种 TUN 栈时运行 `make cli CLI_TAGS="$(bash scripts/build-tags.sh cli),with_gvisor"`。
 
 ## 构建
 
@@ -60,10 +60,19 @@ make native
 
 产物为 `dist/<os>-<arch>/libbox.{dll,dylib,so}` 和 `libbox.h`。Android、Apple 和 Windows 交叉构建的工具链与命令见 [平台接入](docs/hosts.md)。
 
-默认构建标签为 `with_quic,with_wireguard,with_utls,with_clash_api`。Apple 移动端额外启用 `with_low_memory`。TUN 默认使用新的 Go TCP/IP 栈，建议省略 `stack`；兼容使用 mixed/gvisor 时需添加 `with_gvisor`。
+默认标签统一由 [build-tags.sh](scripts/build-tags.sh) 提供，并与固定 sing-box 版本的发布功能集校验：
+
+| 产物 | 默认功能与 Naive 运行依赖 |
+|---|---|
+| Linux CLI | 上游非 Naive 功能集，保持静态链接 |
+| Linux / Windows SDK | 完整功能集及 Naive，使用 `with_purego`；分发包同时提供匹配的 `libcronet.so` / `libcronet.dll` |
+| Android / Apple SDK | 完整功能集及 Naive，Cronet 静态链接；Apple 移动端额外启用 `with_low_memory` |
+
+TUN 默认使用新的 Go TCP/IP 栈，建议省略 `stack`；mixed/gvisor TUN 栈仍需额外添加 `with_gvisor`。`GO_TAGS`（SDK）和 `CLI_TAGS`（CLI）可覆盖默认功能集。各功能仍受上游平台与系统权限限制。
 
 ```bash
 make test race vet          # 内部模块、协议测试及静态检查
+make tags-check             # 核对各产物的默认功能集
 make clean                  # 清理本仓库产物与工具缓存
 ```
 

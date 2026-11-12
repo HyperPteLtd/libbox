@@ -7,6 +7,7 @@ No TUN is created and no system routes or DNS settings are changed.
 import ctypes
 import itertools
 import json
+import os
 import pathlib
 import socket
 import sys
@@ -17,7 +18,13 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools/protocol'))
 from libbox.v1 import control_pb2 as pb
 
-lib=ctypes.CDLL(str(pathlib.Path(sys.argv[1]).resolve()))
+library_path=pathlib.Path(sys.argv[1]).resolve()
+# Cronet's purego loader searches the host executable directory and PATH (on
+# Windows) or LD_LIBRARY_PATH (on Linux). Set this before Go initializes.
+if sys.platform in ('win32','linux'):
+    search_variable='PATH' if sys.platform=='win32' else 'LD_LIBRARY_PATH'
+    os.environ[search_variable]=str(library_path.parent)+os.pathsep+os.environ.get(search_variable,'')
+lib=ctypes.CDLL(str(library_path))
 callback_type=ctypes.CFUNCTYPE(ctypes.c_int64,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_uint64,ctypes.c_void_p,ctypes.c_uint64)
 lib.libbox_session_new.argtypes=[ctypes.c_void_p,callback_type];lib.libbox_session_new.restype=ctypes.c_uint64
 lib.libbox_session_call.argtypes=[ctypes.c_uint64,ctypes.c_void_p,ctypes.c_uint64,ctypes.POINTER(ctypes.c_uint64)];lib.libbox_session_call.restype=ctypes.c_void_p
@@ -59,6 +66,10 @@ def call(expected_error=None,**method):
 
 try:
     info=call(get_info=pb.Empty()).info
+    if len(sys.argv)>2:
+        expected=set(sys.argv[2].split(','))
+        actual=set(info.build_tags.split(','))
+        assert actual==expected, f'Build tags differ: missing={expected-actual}, extra={actual-expected}'
     with tempfile.TemporaryDirectory(prefix='libbox-protobuf-') as home:
         call(create_engine=pb.EngineOptions(working_directory=home))
         baseline=call(get_status=pb.Empty()).status.go_memory_limit_bytes
@@ -68,6 +79,12 @@ try:
         assert call(list_outbounds=pb.Empty()).outbounds.outbounds[0].tag=='direct'
         assert call(next_event=pb.NextEvent()).event.WhichOneof('data')=='state'
         call(destroy_engine=pb.Empty())
+        if 'with_naive_outbound' in info.build_tags.split(','):
+            call(create_engine=pb.EngineOptions(working_directory=home))
+            naive=json.dumps({'log':{'disabled':True},'outbounds':[{'type':'naive','tag':'naive','server':'127.0.0.1','server_port':443,'tls':{'enabled':True,'server_name':'localhost'}}]})
+            call(check_config=pb.Config(config_json=naive))
+            call(start=pb.Config(config_json=naive))
+            call(destroy_engine=pb.Empty())
         call(create_engine=pb.EngineOptions(working_directory=home,memory_profile=pb.EngineOptions.NETWORK_EXTENSION))
         assert call(get_status=pb.Empty()).status.go_memory_limit_bytes==min(baseline,40*1024*1024)
         call(destroy_engine=pb.Empty())

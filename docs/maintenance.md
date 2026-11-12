@@ -10,6 +10,8 @@
 
 升级后核对配置格式、宿主接口和依赖解析结果。Go 的版本选择可能保留既有较高版本，因此只修改 sing-box 一项依赖并不等于对齐发布依赖集。
 
+默认编译功能集统一维护在 [build-tags.sh](../scripts/build-tags.sh)。`make tags-check` 对照固定核心的 `DEFAULT_BUILD_TAGS`、`DEFAULT_BUILD_TAGS_OTHERS` 和 `DEFAULT_BUILD_TAGS_WINDOWS` 检查遗漏；Linux SDK 额外使用 `with_purego`。SDK 支持 Naive，静态路由器 CLI 排除 Naive；mixed/gvisor TUN 栈均由调用方按需启用。
+
 SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 `internal/singbox/registry.go` 注册到上游出站注册表，其余注册表与 `include.Context` 保持一致。升级时还要核对：
 
 - `include` 各注册表函数和 `box.Context` 的签名；上游是否自行注册了 `loadbalance` 类型（注册表测试会报错）。
@@ -20,7 +22,7 @@ SDK 自带的 `loadbalance` 出站组（`internal/singbox/loadbalance`）通过 
 
 1. 修改 [runtime.go](../internal/singbox/runtime.go) 的 `sdkVersion`。
 2. 推送标签 `v<sdkVersion>`，例如 `git tag v0.1.0 && git push origin v0.1.0`。标签与 `sdkVersion` 不一致时 [release.yml](../.github/workflows/release.yml) 直接失败。
-3. 工作流构建路由器命令行（全部 CPU，含冒烟测试和静态链接检查）、各平台 C 动态库、Android AAR、Apple XCFramework，汇总 `sha256sums` 后创建 GitHub Release；版本号含 `-` 时标为预发布。
+3. 工作流检查功能标签，构建路由器命令行（全部 CPU，含冒烟测试和静态链接检查）、各平台 C 动态库、Android AAR、Apple XCFramework。Linux/Windows SDK 包含锁定版本的 Cronet 运行库，并执行 Naive 初始化冒烟。汇总 `sha256sums` 后创建 GitHub Release；版本号含 `-` 时标为预发布。
 
 在 Actions 页面手动运行 Release 工作流只构建、不发布，可在打标签前检查各平台是否能编译。
 
@@ -41,7 +43,7 @@ python3 scripts/generate-protocol.py --swift --check
 ## 检查命令
 
 ```bash
-make test race vet protocol-check
+make test race vet protocol-check tags-check
 make cli-test cli            # 路由器命令行（Linux）
 make android-host-tests    # JDK 17
 make windows-host-tests    # .NET 8+
@@ -58,6 +60,8 @@ python3 scripts/smoke-protobuf.py dist/darwin-arm64/libbox.dylib
 ```
 
 将示例库路径替换为实际产物路径。该测试不创建真实 TUN。平台构建方法见 [平台接入](hosts.md)；签名、VPN、DNS、网络切换和后台行为需要在目标系统单独验收。
+
+传入第二个参数可校验实际构建标签，例如 `python3 scripts/smoke-protobuf.py dist/darwin-arm64/libbox.dylib "$(bash scripts/build-tags.sh native)"`。启用 Naive 时会校验其配置并启动、销毁客户端，不向代理服务器拨号。
 
 ## 清理
 
