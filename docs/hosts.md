@@ -95,6 +95,8 @@ SDK 为 `dist/mobile/Libbox.xcframework`，包含 iOS 真机、iOS 模拟器和 
 | entitlement | `packet-tunnel-provider` | `packet-tunnel-provider-systemextension` |
 | 出站选择 | 系统 NECP 管理 | 根据物理网络快照绑定接口 |
 
+XCFramework 是静态库，Go 依赖在 cgo 里声明的系统框架不会随它带给宿主，宿主要自己链接，完整列表见 [示例 XcodeGen 配置](../examples/apple/project.yml)。其中 macOS 扩展需弱链接 `IOUSBHost.framework`（`with_usbip`，只在 macOS slice 中）：头文件没有标注可用版本，弱链接保证在缺少这些类的系统上也能加载。
+
 两端共用 [PacketTunnelProvider](../examples/apple/Shared/PacketTunnelProvider.swift)。App 通过 NETunnelProviderManager 启动 VPN，配置中保存 Start protobuf；macOS 还需激活系统扩展。部署时设置自己的 Team、Bundle ID 和匹配权限，并完成签名。
 
 Provider 应用网络设置后，查找唯一的 utun FD 并借给 SDK。SDK 使用 CLOEXEC、非阻塞副本，不能同时启动另一条 `packetFlow` 读包循环。无法唯一识别 FD 时启动失败。

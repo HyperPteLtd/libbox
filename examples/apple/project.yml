@@ -101,6 +101,8 @@ targets:
       - sdk: IOKit.framework
       - sdk: OpenDirectory.framework
       - sdk: CoreServices.framework
+      - sdk: IOUSBHost.framework
+        weak: true
       - sdk: libbsm.tbd
       - sdk: libpmenergy.tbd
       - sdk: libpmsample.tbd
